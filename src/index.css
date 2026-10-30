@@ -467,8 +467,10 @@ button:hover {
   }
 
   .sidebar {
+    order: -1;
     position: static;
     max-height: none;
+    width: 100%;
   }
 
   .line-panel__list {

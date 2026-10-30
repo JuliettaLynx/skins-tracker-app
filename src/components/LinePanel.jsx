@@ -14,7 +14,7 @@ const SORTS = {
 // Right sidebar with a card per skin line.
 export default function LinePanel({ lines }) {
   const [query, setQuery] = useState('')
-  const [sort, setSort] = useState('name')
+  const [sort, setSort] = useState('progress')
 
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase()
@@ -42,9 +42,9 @@ export default function LinePanel({ lines }) {
           onChange={(event) => setSort(event.target.value)}
           aria-label="Сортировка линеек"
         >
+          <option value="progress">по % заполнения</option>
           <option value="name">по названию</option>
           <option value="total">по числу скинов</option>
-          <option value="progress">по прогрессу</option>
         </select>
       </div>
       <ul className="line-panel__list">
