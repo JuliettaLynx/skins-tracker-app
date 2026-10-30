@@ -7,6 +7,7 @@ import ImportBar from './components/ImportBar.jsx'
 import RecommSummary from './components/RecommSummary.jsx'
 import { useWishlist } from './hooks/useWishlist.js'
 import WishlistPanel from './components/WishlistPanel.jsx'
+import GlobalRecommPanel from './components/GlobalRecommPanel.jsx'
 import { buildBaseLine, buildShardRecommendations, recommendFor } from './recommendations.js'
 import { LIST_COLORS } from './rarities.js'
 import {
@@ -233,13 +234,21 @@ export default function App() {
           chromas={chromas}
         />
         {view === 'skins' && recommendations.summary.total > 0 && (
-          <RecommSummary summary={recommendations.summary} />
+          <RecommSummary recommendations={recommendations} />
         )}
+
         {view === 'skins' && wishlist.length > 0 && (
           <WishlistPanel
             wishlist={wishlist}
             base={recommendations.base}
-            onRemove={toggleWishlist}
+          />
+        )}
+
+        {view === 'skins' && !loading && skins.length > 0 && (
+          <GlobalRecommPanel
+            skins={skins}
+            base={recommendations.base}
+            // priceMap={priceMap} // раскомментируешь, когда появится JSON
           />
         )}
 

@@ -23,8 +23,8 @@ export const TIER_META = {
     description: 'Продолжает начатую группу, но пока не закрывает',
   },
   [TIERS.disenchant]: {
-    short: '✕', label: 'Разобрать', color: '#E74C3C',
-    description: 'Начнёт новую коллекцию, которую не закрыть текущими осколками',
+    short: '✕', label: 'Отложить', color: '#E74C3C',
+    description: 'Начнёт новую коллекцию, которую пока не закрыть',
   },
 }
 
@@ -115,7 +115,7 @@ export const recommendFor = (itemIds, base, ownedSet = base.collectionSet, extra
     const skin = base.skinById.get(itemId)
     if (!skin) continue
 
-    const groups = []
+        const groups = []
     for (let i = 0; i < skin.skinLineIds.length; i++) {
       const slId = skin.skinLineIds[i]
       const ids = base.bySkinline.get(slId) ?? []
@@ -143,11 +143,21 @@ export const recommendFor = (itemIds, base, ownedSet = base.collectionSet, extra
     let startsNew = false
     let validDelta = 0
     let completedDelta = 0
+    let missingToComplete = Infinity
 
     for (const g of groups) {
+      // Считаем, сколько скинов не хватает (с учетом осколков)
+      const missing = g.total - g.owned - g.inShards
+      if (missing < missingToComplete) missingToComplete = missing
+      
+      // Для вишлиста считаем с учетом покупки
+      const missingPotential = g.total - g.owned - g.inPotential
+      if (missingPotential < 0) missingToComplete = 0 // если вишлист перекрывает
+
       if (g.owned + 1 === g.total) {
         completesNow = true
         completedDelta += 1
+        missingToComplete = 1
       } else {
         if (g.owned === 0) {
           startsNew = true
@@ -157,6 +167,12 @@ export const recommendFor = (itemIds, base, ownedSet = base.collectionSet, extra
           completesWithGroup = true
         }
       }
+    }
+
+    if (completesNow) missingToComplete = 1
+    else if (completesWithGroup) missingToComplete = 0
+    else {
+      missingToComplete = Math.min(...groups.map(g => Math.max(0, g.total - g.owned - g.inShards)))
     }
 
     let tier
@@ -182,6 +198,7 @@ export const recommendFor = (itemIds, base, ownedSet = base.collectionSet, extra
       completesWithGroup,
       startsNew,
       groups,
+      missingToComplete,
     })
   }
 
