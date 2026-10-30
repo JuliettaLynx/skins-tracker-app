@@ -3,29 +3,41 @@ import SkinChip from './SkinChip.jsx'
 import SkinsColumn from './SkinsColumn.jsx'
 import { LIST, LIST_TITLES, skinKey } from '../skins.js'
 
-// Table: champion | collection | shards | all skins of the champion.
+const thCls =
+  'sticky top-0 z-[3] bg-[#151b26] text-text-h text-[13px] font-semibold text-left px-3 py-2.5 border-b border-border'
+const champThCls =
+  'w-[150px] min-w-[150px] max-w-[150px] sticky left-0 top-0 z-[4] bg-[#151b26] text-text-h text-[13px] font-semibold text-left px-3 py-2.5 border-b border-border'
+const champCellCls =
+  'w-[150px] min-w-[150px] max-w-[150px] p-2 border-b border-[#1a2130] align-top text-left font-normal sticky left-0 bg-panel z-[2] text-text-h text-sm'
+// Узкие ячейки: w-px → сжаться до контента, не тянуться.
+const narrowCellCls = 'w-px p-2 border-b border-[#1a2130] align-top text-left font-normal'
+// Широкая ячейка: без width → заберёт весь остаток ширины таблицы.
+const wideCellCls = 'p-2 border-b border-[#1a2130] align-top text-left font-normal'
+
 export default function ChampionTable({ rows, onMove }) {
   return (
-    <table className="champ-table">
+    <table className="w-full border-separate border-spacing-0 bg-panel border border-border rounded-xl overflow-hidden">
       <thead>
         <tr>
-          <th className="champ-table__champion">
-            <span className="champ-table__num">#</span>Чемпион
+          <th className={champThCls}>
+            <span className="inline-block min-w-[22px] mr-1.5 text-muted text-[11px] tabular-nums">#</span>
+            Чемпион
           </th>
-          <th>{LIST_TITLES[LIST.collection]}</th>
-          <th>{LIST_TITLES[LIST.shards]}</th>
-          <th>{LIST_TITLES[LIST.rest]}</th>
+          <th className={thCls}>{LIST_TITLES[LIST.collection]}</th>
+          <th className={thCls}>{LIST_TITLES[LIST.shards]}</th>
+          <th className={thCls}>{LIST_TITLES[LIST.rest]}</th>
         </tr>
       </thead>
       <tbody>
         {rows.map((row) => (
           <tr key={row.champion}>
-            <th className="champ-table__champion" scope="row">
-              <span className="champ-table__num">{row.num}</span>
+            <th className={champCellCls} scope="row">
+              <span className="inline-block min-w-[22px] mr-1.5 text-muted text-[11px] tabular-nums">{row.num}</span>
               {row.champion}
             </th>
-            <td>
+            <td className={narrowCellCls}>
               <SkinsColumn
+                compact
                 list={LIST.collection}
                 title={LIST_TITLES[LIST.collection]}
                 items={row.collection}
@@ -35,8 +47,9 @@ export default function ChampionTable({ rows, onMove }) {
                 )}
               />
             </td>
-            <td>
+            <td className={narrowCellCls}>
               <SkinsColumn
+                compact
                 list={LIST.shards}
                 title={LIST_TITLES[LIST.shards]}
                 items={row.shards}
@@ -46,7 +59,7 @@ export default function ChampionTable({ rows, onMove }) {
                 )}
               />
             </td>
-            <td>
+            <td className={wideCellCls}>
               <SkinsColumn
                 list={LIST.rest}
                 title={LIST_TITLES[LIST.rest]}

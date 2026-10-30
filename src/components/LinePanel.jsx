@@ -11,6 +11,9 @@ const SORTS = {
   },
 }
 
+const fieldCls =
+  'px-2 py-[6px] rounded-lg border border-border bg-[#0f141d] text-text-h text-[13px]'
+
 // Right sidebar with a card per skin line.
 export default function LinePanel({ lines }) {
   const [query, setQuery] = useState('')
@@ -24,34 +27,38 @@ export default function LinePanel({ lines }) {
   }, [lines, query, sort])
 
   return (
-    <section className="line-panel">
-      <header className="line-panel__head">
-        <h2>Линейки</h2>
-        <span className="line-panel__total">{visible.length}</span>
+    <section className="flex flex-col gap-2.5 w-full p-3 bg-panel border border-border rounded-xl min-h-0">
+      <header className="flex justify-between items-baseline">
+        <h2 className="text-base font-semibold text-text-h">Линейки</h2>
+        <span className="text-xs text-muted">{visible.length}</span>
       </header>
-      <div className="line-panel__controls">
+      <div className="flex gap-2">
         <input
           type="search"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Поиск линейки"
           aria-label="Поиск линейки"
+          className={`flex-1 min-w-0 ${fieldCls}`}
         />
         <select
           value={sort}
           onChange={(event) => setSort(event.target.value)}
           aria-label="Сортировка линеек"
+          className={fieldCls}
         >
           <option value="progress">по % заполнения</option>
           <option value="name">по названию</option>
           <option value="total">по числу скинов</option>
         </select>
       </div>
-      <ul className="line-panel__list">
+      <ul className="grid gap-2 overflow-y-auto min-h-0 max-h-[calc(100svh-210px)] max-[1100px]:max-h-[420px] pr-1">
         {visible.map((line) => (
           <LineCard key={line.name} line={line} />
         ))}
-        {visible.length === 0 && <li className="line-panel__empty">Ничего не найдено</li>}
+        {visible.length === 0 && (
+          <li className="text-muted text-[13px] py-3 text-center">Ничего не найдено</li>
+        )}
       </ul>
     </section>
   )

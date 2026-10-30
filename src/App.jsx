@@ -87,34 +87,40 @@ export default function App() {
   const lines = useMemo(() => buildLines(skins, statusOf), [skins, statusOf])
 
   return (
-    <div className="app">
-      <header className="topbar">
-        <h1>Трекер скинов</h1>
-        <div className="topbar__stats">
-          <span style={{ color: LIST_COLORS.collection }}>коллекция {collection.length}</span>
-          <span style={{ color: LIST_COLORS.shards }}>осколки {shards.length}</span>
-          <span>база {skins.length}</span>
+    <div className="min-h-svh">
+      <header className="sticky top-0 z-10 flex flex-wrap items-center gap-4 px-4 py-2.5 bg-[rgba(10,13,19,0.92)] backdrop-blur-[6px] border-b border-border">
+        <h1 className="m-0 text-[20px] font-semibold text-text-h tracking-[-0.2px]">
+          Трекер скинов
+        </h1>
+        <div className="flex flex-1 items-center justify-between gap-4 min-w-0">
+          <div className="flex gap-3.5 text-[13px] text-muted whitespace-nowrap">
+            <span style={{ color: LIST_COLORS.collection }}>коллекция {collection.length}</span>
+            <span style={{ color: LIST_COLORS.shards }}>осколки {shards.length}</span>
+            <span>база {skins.length}</span>
+          </div>
+          <ImportBar onImport={handleImport} disabled={loading || skins.length === 0} />
         </div>
-        <ImportBar onImport={handleImport} disabled={loading || skins.length === 0} />
-        <input
-          className="topbar__search"
-          type="search"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Поиск чемпиона"
-          aria-label="Поиск чемпиона"
-        />
       </header>
 
-      <div className="layout">
-        <main className="content">
-          {error && <p className="notice notice--error">Не удалось загрузить data.json: {error}</p>}
-          {!error && loading && <p className="notice">Загружаем базу скинов…</p>}
-          {!error && !loading && rows.length === 0 && <p className="notice">Ничего не найдено</p>}
-          {!error && !loading && rows.length > 0 && <ChampionTable rows={rows} onMove={moveSkin} />}
+      <div className="grid grid-cols-1 min-[1100px]:grid-cols-[minmax(0,1fr)_360px] items-start gap-4 p-4">
+        <main className="min-w-0 overflow-x-auto">
+          {error && (
+            <p className="py-10 px-4 text-center text-[#ff8f8f]">
+              Не удалось загрузить data.json: {error}
+            </p>
+          )}
+          {!error && loading && (
+            <p className="py-10 px-4 text-center text-muted">Загружаем базу скинов…</p>
+          )}
+          {!error && !loading && rows.length === 0 && (
+            <p className="py-10 px-4 text-center text-muted">Ничего не найдено</p>
+          )}
+          {!error && !loading && rows.length > 0 && (
+            <ChampionTable rows={rows} onMove={moveSkin} />
+          )}
         </main>
 
-        <aside className="sidebar">
+        <aside className="flex max-[1100px]:order-first max-[1100px]:w-full min-[1100px]:sticky min-[1100px]:top-[60px] min-[1100px]:max-h-[calc(100svh-76px)]">
           <LinePanel lines={lines} />
         </aside>
       </div>
