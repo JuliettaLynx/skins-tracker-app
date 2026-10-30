@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
-// Persist a piece of state in localStorage under `key`.
 export default function useLocalStorage(key, initialValue) {
   const [value, setValue] = useState(() => {
     try {
@@ -11,12 +10,19 @@ export default function useLocalStorage(key, initialValue) {
     }
   })
 
+  const first = useRef(true)
   useEffect(() => {
-    try {
-      window.localStorage.setItem(key, JSON.stringify(value))
-    } catch {
-      // Private mode or a full quota: the app keeps working in memory.
+    if (first.current) {
+      first.current = false
+      return
     }
+    const t = setTimeout(() => {
+      try {
+        window.localStorage.setItem(key, JSON.stringify(value))
+      } catch {
+      }
+    }, 300)
+    return () => clearTimeout(t)
   }, [key, value])
 
   return [value, setValue]

@@ -44,6 +44,7 @@ export default function ImportBar({ onImport, disabled }) {
       {result && (
         <span className="text-xs text-[#8fc46a] whitespace-nowrap">
           +{result.collection} в коллекцию, +{result.shards} в осколки
+          {result.chromas > 0 ? `, +${result.chromas} хром` : ''}
           {result.skipped > 0 ? `, пропущено ${result.skipped}` : ''}
         </span>
       )}
