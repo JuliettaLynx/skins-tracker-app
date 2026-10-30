@@ -1,6 +1,7 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import ChampionTable from './components/ChampionTable.jsx'
 import ChromaTable from './components/ChromaTable.jsx'
+import ParameterCards from './components/ParameterCards.jsx'
 import LinePanel from './components/LinePanel.jsx'
 import ImportBar from './components/ImportBar.jsx'
 import { LIST_COLORS } from './rarities.js'
@@ -31,6 +32,7 @@ const readView = () => {
 export default function App() {
   const [skins, setSkins] = useState([])
   const [chromaCatalogue, setChromaCatalogue] = useState([])
+  const [champions, setChampions] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [query, setQuery] = useState('')
@@ -53,7 +55,6 @@ export default function App() {
 
   useEffect(() => {
     let alive = true
-
     fetch('/data.json')
       .then((response) => {
         if (!response.ok) throw new Error(`data.json: HTTP ${response.status}`)
@@ -64,6 +65,7 @@ export default function App() {
         const normalized = normalizeData(data)
         setSkins(normalized.skins)
         setChromaCatalogue(normalized.chromas)
+        setChampions(normalized.champions)
         setLoading(false)
       })
       .catch((err) => {
@@ -202,65 +204,79 @@ export default function App() {
           <div className="flex gap-3.5 text-[13px] text-muted whitespace-nowrap">
             <span style={{ color: LIST_COLORS.collection }}>коллекция {collection.length}</span>
             <span style={{ color: LIST_COLORS.shards }}>осколки {shards.length}</span>
-            <span>всего {skins.length}</span>
+            <span>
+              хромы {chromaStats.owned}/{chromaStats.total}
+            </span>
+            <span>база {skins.length}</span>
           </div>
           <ImportBar onImport={handleImport} disabled={loading || skins.length === 0} />
         </div>
       </header>
 
-      <div
-        className={`grid grid-cols-1 ${
-          view === 'skins' ? 'min-[1100px]:grid-cols-[minmax(0,1fr)_360px]' : ''
-        } items-start gap-4 p-4`}
-      >
-        <main className="min-w-0 overflow-x-auto">
-          <div className="flex gap-2 mb-3">
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={view === 'chromas' ? 'Поиск скина или чемпиона' : 'Поиск чемпиона'}
-              className="flex-1 min-w-0 px-3 py-[7px] rounded-lg border border-border bg-[#0f141d] text-text-h text-[13px]"
-            />
-          </div>
+      <div className="p-4 flex flex-col gap-6">
+        <ParameterCards
+          skins={skins}
+          chromaCatalogue={chromaCatalogue}
+          champions={champions}
+          collection={collection}
+          shards={shards}
+          chromas={chromas}
+        />
 
-          {error && (
-            <p className="py-10 px-4 text-center text-[#ff8f8f]">
-              Не удалось загрузить data.json: {error}
-            </p>
-          )}
-          {!error && loading && (
-            <p className="py-10 px-4 text-center text-muted">Загружаем базу скинов…</p>
-          )}
-
-          {!error && !loading && view === 'skins' && (
-            rows.length === 0 ? (
-              <p className="py-10 px-4 text-center text-muted">Ничего не найдено</p>
-            ) : (
-              <ChampionTable rows={rows} onMove={moveSkin} />
-            )
-          )}
-
-          {!error && !loading && view === 'chromas' && (
-            chromaRows.length === 0 ? (
-              <p className="py-10 px-4 text-center text-muted">Ничего не найдено</p>
-            ) : (
-              <ChromaTable
-                rows={chromaRows}
-                ownedSet={ownedChromaSet}
-                onToggle={toggleChroma}
-                filter={chromaFilter}
-                onFilterChange={setChromaFilter}
+        <div
+          className={`grid grid-cols-1 ${
+            view === 'skins' ? 'min-[1100px]:grid-cols-[minmax(0,1fr)_360px]' : ''
+          } items-start gap-4`}
+        >
+          <main className="min-w-0 overflow-x-auto">
+            <div className="flex gap-2 mb-3">
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={view === 'chromas' ? 'Поиск скина или чемпиона' : 'Поиск чемпиона'}
+                className="flex-1 min-w-0 px-3 py-[7px] rounded-lg border border-border bg-[#0f141d] text-text-h text-[13px]"
               />
-            )
-          )}
-        </main>
+            </div>
 
-        {view === 'skins' && (
-          <aside className="flex max-[1100px]:order-first max-[1100px]:w-full min-[1100px]:sticky min-[1100px]:top-[60px] min-[1100px]:max-h-[calc(100svh-76px)]">
-            <LinePanel lines={lines} />
-          </aside>
-        )}
+            {error && (
+              <p className="py-10 px-4 text-center text-[#ff8f8f]">
+                Не удалось загрузить data.json: {error}
+              </p>
+            )}
+            {!error && loading && (
+              <p className="py-10 px-4 text-center text-muted">Загружаем базу скинов…</p>
+            )}
+
+            {!error && !loading && view === 'skins' && (
+              rows.length === 0 ? (
+                <p className="py-10 px-4 text-center text-muted">Ничего не найдено</p>
+              ) : (
+                <ChampionTable rows={rows} onMove={moveSkin} />
+              )
+            )}
+
+            {!error && !loading && view === 'chromas' && (
+              chromaRows.length === 0 ? (
+                <p className="py-10 px-4 text-center text-muted">Ничего не найдено</p>
+              ) : (
+                <ChromaTable
+                  rows={chromaRows}
+                  ownedSet={ownedChromaSet}
+                  onToggle={toggleChroma}
+                  filter={chromaFilter}
+                  onFilterChange={setChromaFilter}
+                />
+              )
+            )}
+          </main>
+
+          {view === 'skins' && (
+            <aside className="flex max-[1100px]:order-first max-[1100px]:w-full min-[1100px]:sticky min-[1100px]:top-[60px] min-[1100px]:max-h-[calc(100svh-76px)]">
+              <LinePanel lines={lines} />
+            </aside>
+          )}
+        </div>
       </div>
     </div>
   )

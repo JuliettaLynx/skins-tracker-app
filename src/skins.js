@@ -6,7 +6,6 @@ export const LIST_TITLES = {
   shards: 'Осколки',
   rest: 'Все скины чемпиона',
 }
-
 export const skinKey = (skin) => String(skin.id)
 export const skinImageSrc = (skin) => skin.image ?? null
 
@@ -34,9 +33,11 @@ export const normalizeData = (data) => {
     const skin = {
       id: String(rawSkin.id),
       champion: champion.name,
+      championId: String(champion.id),
       name: rawSkin.name ?? 'Без названия',
       rarity: rawSkin.rarity ?? '',
       skinLines: (rawSkin.skinlines ?? []).map((line) => line.name),
+      skinLineIds: (rawSkin.skinlines ?? []).map((line) => String(line.id)),
       image: rawSkin.image?.centered ?? null,
     }
     skins.push(skin)
@@ -59,7 +60,13 @@ export const normalizeData = (data) => {
     }
   }
 
-  return { skins, chromas }
+  const championList = champions.map((c) => ({
+    id: String(c.id),
+    name: c.name,
+    key: String(c.key),
+  }))
+
+  return { skins, chromas, champions: championList }
 }
 
 export const championSort = (a, b) => a.champion.localeCompare(b.champion, 'ru')
@@ -68,7 +75,6 @@ const sortSkins = (list) => [...list].sort(byRarity)
 
 export const buildRows = (skins, statusOf, query) => {
   const byChampion = new Map()
-
   for (const skin of skins) {
     if (!byChampion.has(skin.champion)) byChampion.set(skin.champion, [])
     byChampion.get(skin.champion).push(skin)
@@ -86,13 +92,11 @@ export const buildRows = (skins, statusOf, query) => {
 
   const needle = query.trim().toLowerCase()
   if (!needle) return rows
-
   return rows.filter((row) => row.champion.toLowerCase().includes(needle))
 }
 
 export const buildLines = (skins, statusOf) => {
   const byLine = new Map()
-
   for (const skin of skins) {
     for (const line of skin.skinLines ?? []) {
       if (!byLine.has(line)) byLine.set(line, { name: line, total: 0, collection: 0, shards: 0 })
@@ -103,7 +107,6 @@ export const buildLines = (skins, statusOf) => {
       else if (status === LIST.shards) stats.shards += 1
     }
   }
-
   return [...byLine.values()]
 }
 
@@ -141,8 +144,6 @@ export const buildChromaIndex = (chromas) => {
   return [...bySkin.values()]
 }
 
-// collectionSkinSet — id скинов ТОЛЬКО из коллекции (без осколков).
-// Это осознанное решение: «мои скины» = купленные, осколки — временные.
 export const filterChromaRows = (
   rows,
   query,
