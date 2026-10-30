@@ -9,7 +9,9 @@ export default function ChampionTable({ rows, onMove }) {
     <table className="champ-table">
       <thead>
         <tr>
-          <th className="champ-table__champion">Чемпион</th>
+          <th className="champ-table__champion">
+            <span className="champ-table__num">#</span>Чемпион
+          </th>
           <th>{LIST_TITLES[LIST.collection]}</th>
           <th>{LIST_TITLES[LIST.shards]}</th>
           <th>{LIST_TITLES[LIST.rest]}</th>
@@ -19,6 +21,7 @@ export default function ChampionTable({ rows, onMove }) {
         {rows.map((row) => (
           <tr key={row.champion}>
             <th className="champ-table__champion" scope="row">
+              <span className="champ-table__num">{row.num}</span>
               {row.champion}
             </th>
             <td>

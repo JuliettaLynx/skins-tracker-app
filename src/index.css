@@ -169,6 +169,15 @@ ul {
   z-index: 2;
 }
 
+.champ-table__num {
+  display: inline-block;
+  min-width: 22px;
+  margin-right: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
 .champ-table thead .champ-table__champion {
   z-index: 4;
   background: #151b26;

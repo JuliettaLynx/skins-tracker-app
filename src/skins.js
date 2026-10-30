@@ -1,3 +1,6 @@
+// Where a skin currently lives. A skin occupies exactly one list at a time.
+import { rarityRank } from './rarities.js'
+
 export const LIST = {
   collection: 'collection',
   shards: 'shards',
@@ -51,6 +54,11 @@ export const normalizeData = (data) => {
 
 export const championSort = (a, b) => a.champion.localeCompare(b.champion, 'ru')
 
+// Rarest first, then alphabetical by name.
+const byRarity = (a, b) => rarityRank(a.rarity) - rarityRank(b.rarity) || a.name.localeCompare(b.name, 'ru')
+
+const sortSkins = (list) => [...list].sort(byRarity)
+
 // Splits the whole catalogue into per-champion rows split by list.
 // `statusOf` maps a skin key (see skinKey) to a LIST value.
 export const buildRows = (skins, statusOf, query) => {
@@ -69,6 +77,8 @@ export const buildRows = (skins, statusOf, query) => {
       rest: sortSkins(list.filter((s) => statusOf.get(skinKey(s)) === undefined)),
     }))
     .sort(championSort)
+    // Numbering is fixed across the whole roster, so it does not shift while searching.
+    .map((row, index) => ({ ...row, num: index + 1 }))
 
   const needle = query.trim().toLowerCase()
   if (!needle) return rows
