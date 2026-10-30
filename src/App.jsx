@@ -4,6 +4,10 @@ import ChromaTable from './components/ChromaTable.jsx'
 import ParameterCards from './components/ParameterCards.jsx'
 import LinePanel from './components/LinePanel.jsx'
 import ImportBar from './components/ImportBar.jsx'
+import RecommSummary from './components/RecommSummary.jsx'
+import { useWishlist } from './hooks/useWishlist.js'
+import WishlistPanel from './components/WishlistPanel.jsx'
+import { buildBaseLine, buildShardRecommendations, recommendFor } from './recommendations.js'
 import { LIST_COLORS } from './rarities.js'
 import {
   CHROMA_FILTER,
@@ -101,6 +105,13 @@ export default function App() {
     [chromaCatalogue]
   )
 
+  const { wishlist, toggle: toggleWishlist, has: isWished } = useWishlist()
+
+  const recommendations = useMemo(
+    () => buildShardRecommendations({ collection, shards, chromas }, { skins, chromas: chromaCatalogue, champions }),
+    [collection, shards, chromas, skins, chromaCatalogue, champions]
+  )
+
   const moveSkin = useCallback(
     (id, target) => {
       setCollection((prev) =>
@@ -144,9 +155,11 @@ export default function App() {
     [knownSkinIds, knownChromaIds, setCollection, setShards, setChromas]
   )
 
+  const wishlistSet = useMemo(() => new Set(wishlist), [wishlist])
+
   const rows = useMemo(
-    () => buildRows(skins, statusOf, deferredQuery),
-    [skins, statusOf, deferredQuery]
+    () => buildRows(skins, statusOf, deferredQuery, wishlistSet),
+    [skins, statusOf, deferredQuery, wishlistSet]
   )
   const lines = useMemo(() => buildLines(skins, statusOf), [skins, statusOf])
 
@@ -204,10 +217,7 @@ export default function App() {
           <div className="flex gap-3.5 text-[13px] text-muted whitespace-nowrap">
             <span style={{ color: LIST_COLORS.collection }}>коллекция {collection.length}</span>
             <span style={{ color: LIST_COLORS.shards }}>осколки {shards.length}</span>
-            <span>
-              хромы {chromaStats.owned}/{chromaStats.total}
-            </span>
-            <span>база {skins.length}</span>
+            <span>всего {skins.length}</span>
           </div>
           <ImportBar onImport={handleImport} disabled={loading || skins.length === 0} />
         </div>
@@ -222,6 +232,16 @@ export default function App() {
           shards={shards}
           chromas={chromas}
         />
+        {view === 'skins' && recommendations.summary.total > 0 && (
+          <RecommSummary summary={recommendations.summary} />
+        )}
+        {view === 'skins' && wishlist.length > 0 && (
+          <WishlistPanel
+            wishlist={wishlist}
+            base={recommendations.base}
+            onRemove={toggleWishlist}
+          />
+        )}
 
         <div
           className={`grid grid-cols-1 ${
@@ -252,7 +272,13 @@ export default function App() {
               rows.length === 0 ? (
                 <p className="py-10 px-4 text-center text-muted">Ничего не найдено</p>
               ) : (
-                <ChampionTable rows={rows} onMove={moveSkin} />
+                <ChampionTable
+                  rows={rows}
+                  onMove={moveSkin}
+                  recommendationsById={recommendations.recommendationsById}
+                  onWishlist={toggleWishlist}
+                  isWished={isWished}
+                />
               )
             )}
 

@@ -73,7 +73,7 @@ export const championSort = (a, b) => a.champion.localeCompare(b.champion, 'ru')
 const byRarity = (a, b) => rarityRank(a.rarity) - rarityRank(b.rarity) || a.name.localeCompare(b.name, 'ru')
 const sortSkins = (list) => [...list].sort(byRarity)
 
-export const buildRows = (skins, statusOf, query) => {
+export const buildRows = (skins, statusOf, query, wishlistSet) => {
   const byChampion = new Map()
   for (const skin of skins) {
     if (!byChampion.has(skin.champion)) byChampion.set(skin.champion, [])
@@ -86,9 +86,8 @@ export const buildRows = (skins, statusOf, query) => {
       collection: sortSkins(list.filter((s) => statusOf.get(skinKey(s)) === LIST.collection)),
       shards: sortSkins(list.filter((s) => statusOf.get(skinKey(s)) === LIST.shards)),
       rest: sortSkins(list.filter((s) => statusOf.get(skinKey(s)) === undefined)),
+      wishlist: sortSkins(list.filter((s) => wishlistSet?.has(s.id))),
     }))
-    .sort(championSort)
-    .map((row, index) => ({ ...row, num: index + 1 }))
 
   const needle = query.trim().toLowerCase()
   if (!needle) return rows

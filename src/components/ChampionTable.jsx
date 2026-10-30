@@ -23,6 +23,9 @@ const SORT_COMPARATORS = {
     a.shards.length - b.shards.length || a.champion.localeCompare(b.champion, 'ru'),
   rest: (a, b) =>
     a.rest.length - b.rest.length || a.champion.localeCompare(b.champion, 'ru'),
+  wishlist: (a, b) =>
+    (a.wishlist?.length ?? 0) - (b.wishlist?.length ?? 0) ||
+    a.champion.localeCompare(b.champion, 'ru'),
 }
 
 function SortableTh({ children, sortKey, sort, onSort, className }) {
@@ -49,7 +52,13 @@ function SortableTh({ children, sortKey, sort, onSort, className }) {
   )
 }
 
-export default function ChampionTable({ rows, onMove }) {
+export default function ChampionTable({
+  rows,
+  onMove,
+  recommendationsById,
+  onWishlist,
+  isWished,
+}) {
   const [sort, setSort] = useState({ key: 'champion', dir: 'asc' })
 
   // Same column → flip direction; new column → default direction
@@ -84,6 +93,9 @@ export default function ChampionTable({ rows, onMove }) {
           <SortableTh className={thCls} sortKey="rest" sort={sort} onSort={toggleSort}>
             {LIST_TITLES[LIST.rest]}
           </SortableTh>
+          <SortableTh className={thCls} sortKey="wishlist" sort={sort} onSort={toggleSort}>
+            Вишлист
+          </SortableTh>
         </tr>
       </thead>
       <tbody>
@@ -101,7 +113,14 @@ export default function ChampionTable({ rows, onMove }) {
                 items={row.collection}
                 onMove={onMove}
                 renderItem={(skin) => (
-                  <SkinCard key={skinKey(skin)} skin={skin} list={LIST.collection} onMove={onMove} />
+                  <SkinCard
+                    key={skinKey(skin)}
+                    skin={skin}
+                    list={LIST.collection}
+                    onMove={onMove}
+                    onWishlist={onWishlist}
+                    isWished={isWished?.(skinKey(skin))}
+                  />
                 )}
               />
             </td>
@@ -113,7 +132,15 @@ export default function ChampionTable({ rows, onMove }) {
                 items={row.shards}
                 onMove={onMove}
                 renderItem={(skin) => (
-                  <SkinCard key={skinKey(skin)} skin={skin} list={LIST.shards} onMove={onMove} />
+                  <SkinCard
+                    key={skinKey(skin)}
+                    skin={skin}
+                    list={LIST.shards}
+                    onMove={onMove}
+                    tier={recommendationsById?.get(skinKey(skin))?.tier}
+                    onWishlist={onWishlist}
+                    isWished={isWished?.(skinKey(skin))}
+                  />
                 )}
               />
             </td>
@@ -123,7 +150,32 @@ export default function ChampionTable({ rows, onMove }) {
                 title={LIST_TITLES[LIST.rest]}
                 items={row.rest}
                 onMove={onMove}
-                renderItem={(skin) => <SkinChip key={skinKey(skin)} skin={skin} onMove={onMove} />}
+                renderItem={(skin) => (
+                  <SkinChip
+                    key={skinKey(skin)}
+                    skin={skin}
+                    onMove={onMove}
+                    onWishlist={onWishlist}
+                    isWished={isWished?.(skinKey(skin))}
+                  />
+                )}
+              />
+            </td>
+            <td className={wideCellCls}>
+              <SkinsColumn
+                list="wishlist"
+                title="Вишлист"
+                items={row.wishlist ?? []}
+                onMove={onMove}
+                renderItem={(skin) => (
+                  <SkinChip
+                    key={skinKey(skin)}
+                    skin={skin}
+                    onMove={onMove}
+                    onWishlist={onWishlist}
+                    isWished
+                  />
+                )}
               />
             </td>
           </tr>
