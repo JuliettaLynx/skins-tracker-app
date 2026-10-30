@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import ChampionTable from './components/ChampionTable.jsx'
 import LinePanel from './components/LinePanel.jsx'
 import { LIST_COLORS } from './rarities.js'
-import { LIST, buildLines, buildRows } from './skins.js'
+import { LIST, buildLines, buildRows, normalizeData } from './skins.js'
 import useLocalStorage from './hooks/useLocalStorage.js'
 
 const STORAGE_KEYS = {
@@ -21,14 +21,15 @@ export default function App() {
 
   useEffect(() => {
     let alive = true
-    fetch('/skins.json')
+
+    fetch('/data.json')
       .then((response) => {
-        if (!response.ok) throw new Error(`skins.json: HTTP ${response.status}`)
+        if (!response.ok) throw new Error(`data.json: HTTP ${response.status}`)
         return response.json()
       })
       .then((data) => {
         if (!alive) return
-        setSkins(Array.isArray(data) ? data : [])
+        setSkins(normalizeData(data))
         setLoading(false)
       })
       .catch((err) => {
@@ -36,29 +37,29 @@ export default function App() {
         setError(err.message)
         setLoading(false)
       })
+
     return () => {
       alive = false
     }
   }, [])
 
-  // Both lists hold skin uuids, matching the keys produced by skinKey().
   const statusOf = useMemo(() => {
     const map = new Map()
-    for (const uuid of collection) map.set(uuid, LIST.collection)
-    for (const uuid of shards) {
-      if (!map.has(uuid)) map.set(uuid, LIST.shards)
+    for (const id of collection) map.set(id, LIST.collection)
+    for (const id of shards) {
+      if (!map.has(id)) map.set(id, LIST.shards)
     }
     return map
   }, [collection, shards])
 
   // A skin lives in exactly one list, so moving means "put into target, drop out of the others".
   const moveSkin = useCallback(
-    (uuid, target) => {
+    (id, target) => {
       setCollection((prev) =>
-        target === LIST.collection ? (prev.includes(uuid) ? prev : [...prev, uuid]) : prev.filter((x) => x !== uuid)
+        target === LIST.collection ? (prev.includes(id) ? prev : [...prev, id]) : prev.filter((x) => x !== id)
       )
       setShards((prev) =>
-        target === LIST.shards ? (prev.includes(uuid) ? prev : [...prev, uuid]) : prev.filter((x) => x !== uuid)
+        target === LIST.shards ? (prev.includes(id) ? prev : [...prev, id]) : prev.filter((x) => x !== id)
       )
     },
     [setCollection, setShards]
@@ -88,7 +89,7 @@ export default function App() {
 
       <div className="layout">
         <main className="content">
-          {error && <p className="notice notice--error">Не удалось загрузить skins.json: {error}</p>}
+          {error && <p className="notice notice--error">Не удалось загрузить data.json: {error}</p>}
           {!error && loading && <p className="notice">Загружаем базу скинов…</p>}
           {!error && !loading && rows.length === 0 && <p className="notice">Ничего не найдено</p>}
           {!error && !loading && rows.length > 0 && <ChampionTable rows={rows} onMove={moveSkin} />}
