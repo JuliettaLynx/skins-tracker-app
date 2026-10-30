@@ -93,6 +93,56 @@ ul {
   color: var(--text-h);
 }
 
+.import-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+
+.import-bar__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  height: auto;
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1px solid #3a4a28;
+  background: #1a2611;
+  color: #8fc46a;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.import-bar__btn:hover:not(:disabled) {
+  background: #233316;
+  border-color: #5aad35;
+}
+
+.import-bar__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.import-bar__error {
+  font-size: 12px;
+  color: #ff8f8f;
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.import-bar__result {
+  font-size: 12px;
+  color: #8fc46a;
+  white-space: nowrap;
+}
+
 .layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 360px;

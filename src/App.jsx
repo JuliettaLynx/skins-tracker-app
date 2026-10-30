@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import ChampionTable from './components/ChampionTable.jsx'
 import LinePanel from './components/LinePanel.jsx'
+import ImportBar from './components/ImportBar.jsx'
 import { LIST_COLORS } from './rarities.js'
 import { LIST, buildLines, buildRows, normalizeData } from './skins.js'
+import { mergeLists, parseInventory } from './inventory.js'
 import useLocalStorage from './hooks/useLocalStorage.js'
 
 const STORAGE_KEYS = {
@@ -65,6 +67,22 @@ export default function App() {
     [setCollection, setShards]
   )
 
+  // Handles the uploaded inventory file: tops both lists up with what the file says.
+  const handleImport = useCallback(
+    (raw) => {
+      const knownIds = new Set(skins.map((s) => s.id))
+      const parsed = parseInventory(raw, knownIds)
+      setCollection((prev) => mergeLists(prev, parsed.collection))
+      setShards((prev) => mergeLists(prev, parsed.shards))
+      return {
+        collection: parsed.collection.length,
+        shards: parsed.shards.length,
+        skipped: parsed.skipped,
+      }
+    },
+    [skins, setCollection, setShards]
+  )
+
   const rows = useMemo(() => buildRows(skins, statusOf, query), [skins, statusOf, query])
   const lines = useMemo(() => buildLines(skins, statusOf), [skins, statusOf])
 
@@ -77,6 +95,7 @@ export default function App() {
           <span style={{ color: LIST_COLORS.shards }}>осколки {shards.length}</span>
           <span>база {skins.length}</span>
         </div>
+        <ImportBar onImport={handleImport} disabled={loading || skins.length === 0} />
         <input
           className="topbar__search"
           type="search"
