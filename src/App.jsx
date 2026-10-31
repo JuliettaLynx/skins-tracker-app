@@ -1,13 +1,4 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
-import ChampionTable from './components/ChampionTable.jsx'
-import ChromaTable from './components/ChromaTable.jsx'
-import ParameterCards from './components/ParameterCards.jsx'
-import LinePanel from './components/LinePanel.jsx'
-import ImportBar from './components/ImportBar.jsx'
-import RecommSummary from './components/RecommSummary.jsx'
-import { useWishlist } from './hooks/useWishlist.js'
-import WishlistPanel from './components/WishlistPanel.jsx'
-import GlobalRecommPanel from './components/GlobalRecommPanel.jsx'
 import { buildShardRecommendations } from './recommendations.js'
 import { LIST_COLORS } from './rarities.js'
 import {
@@ -22,11 +13,22 @@ import {
 import { mergeLists, parseInventory } from './inventory.js'
 import { parseStorePrices } from './prices.js'
 import useLocalStorage from './hooks/useLocalStorage.js'
+import useWishlist from './hooks/useWishlist.js'
+
+import ChampionTable from './components/ChampionTable.jsx'
+import ChromaTable from './components/ChromaTable.jsx'
+import ParameterCards from './components/ParameterCards.jsx'
+import LinePanel from './components/LinePanel.jsx'
+import ImportBar from './components/ImportBar.jsx'
+import RecommSummary from './components/RecommSummary.jsx'
+import WishlistPanel from './components/WishlistPanel.jsx'
+import GlobalRecommPanel from './components/GlobalRecommPanel.jsx'
 
 const STORAGE_KEYS = {
   collection: 'skins-tracker:collection',
   shards: 'skins-tracker:shards',
   chromas: 'skins-tracker:chromas',
+  wishlist: 'skins-tracker:wishlist',
   chromaFilter: 'skins-tracker:chroma-filter',
   lastImport: 'skins-tracker:lastImport',
   priceMap: 'skins-tracker:priceMap',
@@ -61,6 +63,8 @@ export default function App() {
     STORAGE_KEYS.chromaFilter,
     CHROMA_FILTER.all
   )
+
+  const { wishlist, toggle: toggleWishlist, has: isWished } = useWishlist(STORAGE_KEYS.wishlist)
 
   useEffect(() => {
     if (!Object.values(CHROMA_FILTER).includes(chromaFilter)) {
@@ -116,7 +120,7 @@ export default function App() {
     [chromaCatalogue]
   )
 
-  const { wishlist, toggle: toggleWishlist, has: isWished } = useWishlist()
+  const wishlistSet = useMemo(() => new Set(wishlist), [wishlist])
 
   const recommendations = useMemo(
     () => buildShardRecommendations({ collection, shards, chromas }, { skins, chromas: chromaCatalogue, champions }),
@@ -172,8 +176,6 @@ export default function App() {
     },
     [knownSkinIds, knownChromaIds, setCollection, setShards, setChromas, setPriceMap, setLastImport]
   )
-
-  const wishlistSet = useMemo(() => new Set(wishlist), [wishlist])
 
   const rows = useMemo(
     () => buildRows(skins, statusOf, deferredQuery, wishlistSet),

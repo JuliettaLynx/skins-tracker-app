@@ -14,7 +14,6 @@ const SORTS = {
 const fieldCls =
   'px-2 py-[6px] rounded-lg border border-border bg-[#0f141d] text-text-h text-[13px]'
 
-// Right sidebar with a card per skin line.
 export default function LinePanel({ lines }) {
   const [query, setQuery] = useState('')
   const [sort, setSort] = useState('progress')

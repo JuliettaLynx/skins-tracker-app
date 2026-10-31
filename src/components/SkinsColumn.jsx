@@ -7,7 +7,6 @@ const hoverByList = {
   [LIST.rest]: 'border-accent bg-[rgba(200,155,216,0.08)]',
 }
 
-// Drop zone that renders one list of a champion row.
 export default function SkinsColumn({ list, title, items, onMove, renderItem }) {
   const [hovered, setHovered] = useState(false)
 

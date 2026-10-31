@@ -14,9 +14,6 @@ const idFromLootName = (entry) => {
 
 const shardId = (entry) => asId(entry?.storeItemId) ?? idFromLootName(entry)
 
-// raw: { skins: [...], shards: [...] } из инвентаря
-// { skinIds, chromaIds } — Set'ы id из каталога, чтобы отличать хромы от скинов
-// и не пускать «неизвестные» (эмоции/варды/8-значные) в результат.
 export function parseInventory(raw, { skinIds, chromaIds } = {}) {
   const result = { collection: [], shards: [], chromas: [], skipped: 0 }
 

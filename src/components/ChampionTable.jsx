@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
+import { LIST, LIST_TITLES, skinKey } from '../skins.js'
 import SkinCard from './SkinCard.jsx'
 import SkinChip from './SkinChip.jsx'
 import SkinsColumn from './SkinsColumn.jsx'
-import { LIST, LIST_TITLES, skinKey } from '../skins.js'
 
 const thCls =
   'sticky top-0 z-[3] bg-[#151b26] text-text-h text-[13px] font-semibold text-left px-3 py-2.5 border-b border-border'
@@ -13,8 +13,6 @@ const champCellCls =
 const narrowCellCls = 'w-px p-2 border-b border-[#1a2130] align-top text-left font-normal'
 const wideCellCls = 'p-2 border-b border-[#1a2130] align-top text-left font-normal'
 
-// Comporators receive rows from buildRows, so counts are simply the length of
-// the pre-split arrays. Secondary key = champion name keeps the order stable.
 const SORT_COMPARATORS = {
   champion: (a, b) => a.champion.localeCompare(b.champion, 'ru'),
   collection: (a, b) =>
@@ -61,8 +59,6 @@ export default function ChampionTable({
 }) {
   const [sort, setSort] = useState({ key: 'champion', dir: 'asc' })
 
-  // Same column → flip direction; new column → default direction
-  // (ascending for the alphabetical one, descending for the counters).
   const toggleSort = (key) => {
     setSort((prev) => {
       if (prev.key === key) return { key, dir: prev.dir === 'asc' ? 'desc' : 'asc' }

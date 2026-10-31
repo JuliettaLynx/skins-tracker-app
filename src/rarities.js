@@ -1,5 +1,3 @@
-// Palette per rarity, provided by the tracker owner.
-// Keys are the rarity codes used in data.json.
 export const RARITY_COLORS = {
   kNoRarity: '#00AF57',
   kRare: '#DAA932',
@@ -28,7 +26,6 @@ export const rarityColor = (rarity) => RARITY_COLORS[rarity] ?? FALLBACK_RARITY_
 
 export const rarityLabel = (rarity) => RARITY_LABELS[rarity] ?? rarity ?? 'Неизвестно'
 
-// Highest rarity first, so skins sort from the rarest down to "Без редкости".
 export const RARITY_ORDER = [
   'kExalted',
   'kUltimate',
@@ -40,13 +37,11 @@ export const RARITY_ORDER = [
   'kNoRarity',
 ]
 
-// Unknown rarity goes to the end of the list.
 export const rarityRank = (rarity) => {
   const index = RARITY_ORDER.indexOf(rarity)
   return index === -1 ? RARITY_ORDER.length : index
 }
 
-// A single accent color per list, used by the two-tone progress bars.
 export const LIST_COLORS = {
   collection: '#C89B3C',
   shards: '#3FA7FF',

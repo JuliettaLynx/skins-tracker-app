@@ -1,8 +1,5 @@
 import { useRef, useState } from 'react'
 
-// Lets the user drop or pick an inventory JSON file.
-// The file has two arrays: "skins" and "shards".
-// After parsing, onImport is called with the raw object.
 export default function ImportBar({ onImport, disabled }) {
   const fileRef = useRef(null)
   const [result, setResult] = useState(null)

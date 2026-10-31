@@ -38,10 +38,6 @@ function SetBlock({ block, renderItem }) {
   )
 }
 
-// split — результат splitRecommItems(items).
-// twoColumns — включить 2-колоночную сетку для блоков-наборов на >=1100px.
-//   Чипы «Закрывает» (upgradeNow) и «Остальное» при этом растягиваются
-//   на всю ширину — они не «наборы», а плоский список.
 export default function RecommGroups({
   split,
   renderItem,

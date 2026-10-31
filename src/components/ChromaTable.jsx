@@ -1,8 +1,8 @@
 import { memo, useEffect, useMemo, useState } from 'react'
-import ChromaCard from './ChromaCard.jsx'
-import ChromaChip from './ChromaChip.jsx'
 import { CHROMA_FILTER_LABELS } from '../skins.js'
 import { rarityColor } from '../rarities.js'
+import ChromaCard from './ChromaCard.jsx'
+import ChromaChip from './ChromaChip.jsx'
 
 const PAGE = 60
 
@@ -125,7 +125,6 @@ const ChromaRow = memo(
     if (prev.onToggle !== next.onToggle) return false
     if (prev.num !== next.num) return false
 
-    // Сравниваем только id имеющихся хром этой строки
     const prevIds = []
     const nextIds = []
     for (const c of prev.row.all) if (prev.ownedSet.has(c.id)) prevIds.push(c.id)

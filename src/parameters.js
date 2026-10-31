@@ -46,8 +46,6 @@ export const PARAMETER_META = [
   { key: 'chromaCoverage', title: 'Покрытие хром', description: 'Доля собранных хром у имеющихся скинов', max: 10 },
 ]
 
-// owned: { skinIds: Set<string>, chromaIds: Set<string> }
-// data:  { skins: Skin[], chromas: Chroma[], champions: Champion[] }
 export const computeParameters = (owned, data) => {
   // completeness (max 30)
   const completeness = data.skins.length > 0 ? (owned.skinIds.size / data.skins.length) * 30 : 0

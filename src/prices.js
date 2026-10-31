@@ -22,10 +22,6 @@ export const DEFAULT_OE_BY_RARITY = {
 
 const FALLBACK_PRICE = { RP: 750, OE: 520, available: false, isSale: false, region: 'RU' }
 
-/**
- * Возвращает цену для конкретного скина.
- * Если скина нет в priceMap — он недоступен (available: false).
- */
 export const getSkinPrice = (skin, priceMap) => {
   if (!skin) return { ...FALLBACK_PRICE }
 
@@ -41,7 +37,6 @@ export const getSkinPrice = (skin, priceMap) => {
     }
   }
 
-  // Если точной цены нет, значит скина нет в магазине
   return {
     RP: DEFAULT_RP_BY_RARITY[skin.rarity] ?? FALLBACK_PRICE.RP,
     OE: DEFAULT_OE_BY_RARITY[skin.rarity] ?? FALLBACK_PRICE.OE,
@@ -51,9 +46,6 @@ export const getSkinPrice = (skin, priceMap) => {
   }
 }
 
-/**
- * Приводит загруженный JSON к единому виду (ключи-строки).
- */
 export const normalizePriceMap = (raw) => {
   if (!raw || typeof raw !== 'object') return null
   const map = {}
@@ -69,10 +61,6 @@ export const normalizePriceMap = (raw) => {
   return map
 }
 
-/**
- * Парсит массив товаров из магазина (store) в объект priceMap.
- * Учитывает скидки (sale).
- */
 export const parseStorePrices = (rawItems) => {
   const map = {}
   if (!Array.isArray(rawItems)) return map
@@ -86,11 +74,9 @@ export const parseStorePrices = (rawItems) => {
     let price = item.prices?.find(p => p.currency === 'RP')?.cost
     let isSale = false
 
-    // Если есть скидка и она активна
     if (item.sale && item.sale.prices) {
       const start = item.sale.startDate ? new Date(item.sale.startDate) : null
       const end = item.sale.endDate ? new Date(item.sale.endDate) : null
-      // Если дат нет, или сейчас между ними
       if ((!start || now >= start) && (!end || now <= end)) {
         price = item.sale.prices.find(p => p.currency === 'RP')?.cost ?? price
         isSale = true

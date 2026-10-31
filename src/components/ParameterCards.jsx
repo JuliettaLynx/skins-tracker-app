@@ -32,7 +32,7 @@ export default function ParameterCards({
         <span className="font-semibold" style={{ color: RANK_COLORS[c.rank] ?? '#C89B3C' }}>
           {c.rank}
         </span>
-        <span className="tabular-nums text-muted">{c.score} / 100</span>
+        <span className="tabular-nums text-muted">{c.score.toFixed(2)} / 100</span>
         {s.score > c.score && (
           <>
             <span className="text-muted">·</span>
@@ -41,7 +41,7 @@ export default function ParameterCards({
               {s.rank}
             </span>
             <span className="tabular-nums" style={{ color: LIST_COLORS.shards }}>
-              {s.score} / 100
+              {s.score.toFixed(2)} / 100
             </span>
           </>
         )}

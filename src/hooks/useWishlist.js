@@ -1,10 +1,8 @@
 import { useCallback, useMemo } from 'react'
 import useLocalStorage from './useLocalStorage.js'
 
-const KEY = 'skins-tracker:wishlist'
-
-export function useWishlist() {
-  const [wishlist, setWishlist] = useLocalStorage(KEY, [])
+export default function useWishlist(storageKey) {
+  const [wishlist, setWishlist] = useLocalStorage(storageKey, [])
 
   const wishlistSet = useMemo(() => new Set(wishlist), [wishlist])
 

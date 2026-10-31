@@ -1,6 +1,5 @@
 import { LIST_COLORS } from '../rarities.js'
 
-// Progress bar of one skin line: gold part = collection, blue part = shards.
 export default function LineCard({ line }) {
   const owned = line.collection + line.shards
   const percent = line.total ? (owned / line.total) * 100 : 0
