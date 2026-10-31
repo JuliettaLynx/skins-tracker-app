@@ -1,25 +1,31 @@
 import { useMemo } from 'react'
 import { TIER_META, TIERS, recommendFor } from '../recommendations.js'
+import { getSkinPrice } from '../prices.js'
 import CollapsibleChips from './CollapsibleChips.jsx'
 
 const TIER_ORDER = {
   [TIERS.upgradeNow]: 0,
   [TIERS.upgradeGroup]: 1,
-  [TIERS.advance]: 2,
-  [TIERS.disenchant]: 3,
+  [TIERS.newChampion]: 2,
+  [TIERS.advance]: 3,
+  [TIERS.disenchant]: 4,
 }
 
 const round2 = (n) => Math.round(n * 100) / 100
 
-export default function WishlistPanel({ wishlist, base }) {
+export default function WishlistPanel({ wishlist, base, priceMap }) {
   const items = useMemo(() => {
     if (!base || !wishlist?.length) return []
     const recs = recommendFor(wishlist, base, base.collectionSet, new Set(wishlist))
-    return [...recs.values()].map((r) => ({
-      ...r,
-      inShards: base.shardsSet.has(r.skin.id),
-    }))
-  }, [wishlist, base])
+    return [...recs.values()].map((r) => {
+      const price = getSkinPrice(r.skin, priceMap)
+      return {
+        ...r,
+        price,
+        inShards: base.shardsSet.has(r.skin.id),
+      }
+    })
+  }, [wishlist, base, priceMap])
 
   const sorted = useMemo(() => {
     return [...items].sort(
@@ -34,6 +40,7 @@ export default function WishlistPanel({ wishlist, base }) {
     const byTier = {
       [TIERS.upgradeNow]: 0,
       [TIERS.upgradeGroup]: 0,
+      [TIERS.newChampion]: 0,
       [TIERS.advance]: 0,
       [TIERS.disenchant]: 0,
     }
@@ -93,10 +100,20 @@ export default function WishlistPanel({ wishlist, base }) {
               <span className="max-w-[250px] truncate text-text-h">
                 {item.skin.champion} — {item.skin.name}
               </span>
-              {item.inShards && <span className="text-[10px] text-[#3fa7ff]">◆</span>}
+              {item.inShards && <span className="text-[10px] text-[#3fa7ff]" title="Осколок уже есть">◆</span>}
               <span className="text-[10px] tabular-nums text-muted">
                 +{item.gain.toFixed(2)}
               </span>
+              
+              {item.inShards ? (
+                <span className="text-[10px] text-muted ml-1">Осколок</span>
+              ) : item.price.available ? (
+                <span className={`text-[10px] tabular-nums ml-1 font-semibold ${item.price.isSale ? 'text-[#ff8f8f]' : 'text-text-h'}`}>
+                  {item.price.RP} RP
+                </span>
+              ) : (
+                <span className="text-[10px] text-muted ml-1 italic">Нет в магазине</span>
+              )}
             </li>
           )
         }}

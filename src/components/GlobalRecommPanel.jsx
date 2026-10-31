@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { TIER_META, TIERS, recommendFor } from '../recommendations.js'
+import { getSkinPrice } from '../prices.js'
 import CollapsibleChips from './CollapsibleChips.jsx'
 
 const round2 = (n) => Math.round(n * 100) / 100
@@ -7,36 +8,68 @@ const round2 = (n) => Math.round(n * 100) / 100
 const TIER_ORDER = {
   [TIERS.upgradeNow]: 0,
   [TIERS.upgradeGroup]: 1,
-  [TIERS.advance]: 2,
 }
 
-export default function GlobalRecommPanel({ skins, base }) {
+export default function GlobalRecommPanel({ skins, base, priceMap }) {
+  const storeAvailableSet = useMemo(() => {
+    if (!priceMap) return new Set()
+    const set = new Set()
+    for (const [id, price] of Object.entries(priceMap)) {
+      if (price.available !== false) set.add(id)
+    }
+    return set
+  }, [priceMap])
+
   const items = useMemo(() => {
     if (!base) return []
     const candidates = skins.filter(s => !base.collectionSet.has(s.id)).map(s => s.id)
-    const recs = recommendFor(candidates, base, base.collectionSet)
+    
+    // ПЕРВЫЙ ПРОХОД: оцениваем всех кандидатов
+    const firstPass = recommendFor(candidates, base, base.collectionSet, storeAvailableSet)
+    
+    // Собираем всех, кто полезен И кого реально можно получить (магазин или осколок)
+    const interestingIds = new Set()
+    for (const [id, r] of firstPass) {
+      if (r.tier === TIERS.disenchant) continue
+      const price = getSkinPrice(r.skin, priceMap)
+      const inShards = base.shardsSet.has(id)
+      // Не добавляем то, что нельзя купить и нет в осколках
+      if (!price.available && !inShards) continue
+      // Не добавляем престижные скины (0 RP), если их нет в осколках — их нельзя получить за RP
+      if (price.RP === 0 && !inShards) continue
+      interestingIds.add(id)
+    }
+    
+    // ВТОРОЙ ПРОХОД: добавляем полезное в extraSet, чтобы группы собирались в наборы
+    const combinedExtraSet = new Set([...storeAvailableSet, ...interestingIds])
+    const recs = recommendFor(candidates, base, base.collectionSet, combinedExtraSet)
     
     return [...recs.values()]
-      .map(r => ({ ...r, inShards: base.shardsSet.has(r.skin.id) }))
+      .map(r => {
+        const price = getSkinPrice(r.skin, priceMap)
+        return { ...r, price, inShards: base.shardsSet.has(r.skin.id) }
+      })
       .filter(item => {
-        // Отсеиваем "Отложить" (disenchant) - их слишком много и они бесполезны
+        if (!item.price.available && !item.inShards) return false
         if (item.tier === TIERS.disenchant) return false
+        if (item.price.RP === 0 && !item.inShards) return false
         
-        // "Закрывает" берем всегда
+        // Закрывает — всегда
         if (item.tier === TIERS.upgradeNow) return true
         
-        // "Набор" берем, если не хватает <= 3 скинов
-        if (item.tier === TIERS.upgradeGroup && item.missingToComplete <= 3) return true
-        
-        // "Продолжает" берем, если не хватает <= 2 скинов и выгода неплохая (чтобы отсеять мелкие)
-        if (item.tier === TIERS.advance && item.missingToComplete <= 2 && item.gain > 0) return true
-        
+        // Набор — только если в группе нужно докупить <= 2 скина
+        if (item.tier === TIERS.upgradeGroup) {
+          return item.groups.some(g =>
+            g.owned + g.inPotential === g.total &&  // группа закрывается
+            g.total - g.owned <= 2     // но нужно докупить не больше 2
+          )
+        }
         return false
       })
       .sort((a, b) => {
-        return (TIER_ORDER[a.tier] ?? 3) - (TIER_ORDER[b.tier] ?? 3) || b.gain - a.gain
+        return (TIER_ORDER[a.tier] ?? 2) - (TIER_ORDER[b.tier] ?? 2) || b.gain - a.gain
       })
-  }, [skins, base])
+  }, [skins, base, priceMap, storeAvailableSet])
 
   const totalGain = useMemo(() => {
     return items.reduce((sum, item) => sum + Math.max(0, item.gain), 0)
@@ -78,10 +111,17 @@ export default function GlobalRecommPanel({ skins, base }) {
                   (не хватает {item.missingToComplete})
                 </span>
               )}
-              {item.inShards && <span className="text-[10px] text-[#3fa7ff]">◆</span>}
+              {item.inShards && <span className="text-[10px] text-[#3fa7ff]" title="Осколок уже есть">◆</span>}
               <span className="text-[10px] tabular-nums text-muted ml-1">
                 +{item.gain.toFixed(2)}
               </span>
+              {item.inShards ? (
+                <span className="text-[10px] text-muted ml-1">Осколок</span>
+              ) : (
+                <span className={`text-[10px] tabular-nums ml-1 font-semibold ${item.price.isSale ? 'text-[#ff8f8f]' : 'text-text-h'}`}>
+                  {item.price.RP} RP
+                </span>
+              )}
             </li>
           )
         }}

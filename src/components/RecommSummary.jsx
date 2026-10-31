@@ -5,8 +5,9 @@ import CollapsibleChips from './CollapsibleChips.jsx'
 const TIER_ORDER = {
   [TIERS.upgradeNow]: 0,
   [TIERS.upgradeGroup]: 1,
-  [TIERS.advance]: 2,
-  [TIERS.disenchant]: 3,
+  [TIERS.newChampion]: 2,
+  [TIERS.advance]: 3,
+  [TIERS.disenchant]: 4,
 }
 
 const round2 = (n) => Math.round(n * 100) / 100
@@ -27,6 +28,7 @@ export default function RecommSummary({ recommendations }) {
     const byTier = {
       [TIERS.upgradeNow]: 0,
       [TIERS.upgradeGroup]: 0,
+      [TIERS.newChampion]: 0, 
       [TIERS.advance]: 0,
       [TIERS.disenchant]: 0,
     }

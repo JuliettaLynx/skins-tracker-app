@@ -20,6 +20,7 @@ import {
   normalizeData,
 } from './skins.js'
 import { mergeLists, parseInventory } from './inventory.js'
+import { parseStorePrices } from './prices.js'
 import useLocalStorage from './hooks/useLocalStorage.js'
 
 const STORAGE_KEYS = {
@@ -27,6 +28,8 @@ const STORAGE_KEYS = {
   shards: 'skins-tracker:shards',
   chromas: 'skins-tracker:chromas',
   chromaFilter: 'skins-tracker:chroma-filter',
+  lastImport: 'skins-tracker:lastImport',
+  priceMap: 'skins-tracker:priceMap',
 }
 
 const readView = () => {
@@ -43,7 +46,9 @@ export default function App() {
   const [query, setQuery] = useState('')
   const deferredQuery = useDeferredValue(query)
   const [view, setView] = useState(readView)
-
+  
+  const [lastImport, setLastImport] = useLocalStorage(STORAGE_KEYS.lastImport, null)
+  const [priceMap, setPriceMap] = useLocalStorage(STORAGE_KEYS.priceMap, undefined)
   const [collection, setCollection] = useLocalStorage(STORAGE_KEYS.collection, [])
   const [shards, setShards] = useLocalStorage(STORAGE_KEYS.shards, [])
   const [chromas, setChromas] = useLocalStorage(STORAGE_KEYS.chromas, [])
@@ -146,6 +151,13 @@ export default function App() {
       setCollection((prev) => mergeLists(prev, parsed.collection))
       setShards((prev) => mergeLists(prev, parsed.shards))
       setChromas((prev) => mergeLists(prev, parsed.chromas))
+      
+      if (raw.store) {
+        setPriceMap(parseStorePrices(raw.store))
+      }
+
+      setLastImport(Date.now())
+
       return {
         collection: parsed.collection.length,
         shards: parsed.shards.length,
@@ -153,7 +165,7 @@ export default function App() {
         skipped: parsed.skipped,
       }
     },
-    [knownSkinIds, knownChromaIds, setCollection, setShards, setChromas]
+    [knownSkinIds, knownChromaIds, setCollection, setShards, setChromas, setPriceMap, setLastImport]
   )
 
   const wishlistSet = useMemo(() => new Set(wishlist), [wishlist])
@@ -220,7 +232,20 @@ export default function App() {
             <span style={{ color: LIST_COLORS.shards }}>осколки {shards.length}</span>
             <span>всего {skins.length}</span>
           </div>
-          <ImportBar onImport={handleImport} disabled={loading || skins.length === 0} />
+          
+          <div className="flex items-center gap-3">
+            {lastImport && (
+              <span className="text-[11px] text-muted/70 whitespace-nowrap" title={new Date(lastImport).toLocaleString('ru-RU')}>
+                Обновлено: {new Date(lastImport).toLocaleString('ru-RU', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </span>
+            )}
+            <ImportBar onImport={handleImport} disabled={loading || skins.length === 0} />
+          </div>
         </div>
       </header>
 
@@ -241,6 +266,7 @@ export default function App() {
           <WishlistPanel
             wishlist={wishlist}
             base={recommendations.base}
+            priceMap={priceMap}
           />
         )}
 
@@ -248,7 +274,7 @@ export default function App() {
           <GlobalRecommPanel
             skins={skins}
             base={recommendations.base}
-            // priceMap={priceMap} // раскомментируешь, когда появится JSON
+            priceMap={priceMap}
           />
         )}
 

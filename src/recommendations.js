@@ -5,18 +5,23 @@ const MIN_GROUP_SIZE = 2
 export const TIERS = {
   upgradeNow: 'upgrade-now',
   upgradeGroup: 'upgrade-group',
+  newChampion: 'new-champion',
   advance: 'advance',
   disenchant: 'disenchant',
 }
 
 export const TIER_META = {
   [TIERS.upgradeNow]: {
-    short: '✓', label: 'Закрывает', color: '#2ECC71',
+    short: '✓', label: 'Закрывает', color: '#2c9b5a',
     description: 'Один осколок завершает линейку или чемпиона — самое ценное вложение',
   },
   [TIERS.upgradeGroup]: {
-    short: '⊞', label: 'Набор', color: '#3FA7FF',
+    short: '⊞', label: 'Набор', color: '#813fa9',
     description: 'Закрывает группу, если обновить все осколки этого набора',
+  },
+  [TIERS.newChampion]: {
+    short: '★', label: 'Чемпион', color: '#2e6ca3',
+    description: 'Открывает нового чемпиона в твоём ростере, даже если не закрывает линейку',
   },
   [TIERS.advance]: {
     short: '·', label: 'Продолжает', color: '#C89B3C',
@@ -24,7 +29,7 @@ export const TIER_META = {
   },
   [TIERS.disenchant]: {
     short: '✕', label: 'Отложить', color: '#E74C3C',
-    description: 'Начнёт новую коллекцию, которую пока не закрыть',
+    description: 'Начнёт новую коллекцию, которую не закрыть текущими осколками. Лучше отложить',
   },
 }
 
@@ -96,7 +101,6 @@ const completionistGain = (base, validDelta, completedDelta) => {
 }
 
 // Расчёт для произвольного набора id (shards, wishlist, видимые строки).
-// Расчёт для произвольного набора id (shards, wishlist, видимые строки).
 // extraSet позволяет учесть предметы, которые ещё не куплены, но которые мы планируем купить (например, вишлист).
 export const recommendFor = (itemIds, base, ownedSet = base.collectionSet, extraSet = new Set()) => {
   const result = new Map()
@@ -115,7 +119,7 @@ export const recommendFor = (itemIds, base, ownedSet = base.collectionSet, extra
     const skin = base.skinById.get(itemId)
     if (!skin) continue
 
-        const groups = []
+    const groups = []
     for (let i = 0; i < skin.skinLineIds.length; i++) {
       const slId = skin.skinLineIds[i]
       const ids = base.bySkinline.get(slId) ?? []
@@ -146,18 +150,23 @@ export const recommendFor = (itemIds, base, ownedSet = base.collectionSet, extra
     let missingToComplete = Infinity
 
     for (const g of groups) {
-      // Считаем, сколько скинов не хватает (с учетом осколков)
-      const missing = g.total - g.owned - g.inShards
-      if (missing < missingToComplete) missingToComplete = missing
+      // Сколько нужно купить, чтобы закрыть группу (только за счет осколков)
+      const missingWithShards = Math.max(0, g.total - g.owned)
       
-      // Для вишлиста считаем с учетом покупки
-      const missingPotential = g.total - g.owned - g.inPotential
-      if (missingPotential < 0) missingToComplete = 0 // если вишлист перекрывает
+      // Сколько нужно купить, чтобы закрыть группу (с учетом вишлиста)
+      const missingWithPotential = Math.max(0, g.total - g.owned)
+
+      // Берем лучший (наименьший) вариант нехватки для этой группы
+      const currentMissing = Math.min(missingWithShards, missingWithPotential)
+      if (currentMissing < missingToComplete) {
+        missingToComplete = currentMissing
+      }
 
       if (g.owned + 1 === g.total) {
+        // Покупка этого скина закрывает группу прямо сейчас
         completesNow = true
         completedDelta += 1
-        missingToComplete = 1
+        if (missingToComplete > 1) missingToComplete = 1
       } else {
         if (g.owned === 0) {
           startsNew = true
@@ -169,21 +178,19 @@ export const recommendFor = (itemIds, base, ownedSet = base.collectionSet, extra
       }
     }
 
-    if (completesNow) missingToComplete = 1
-    else if (completesWithGroup) missingToComplete = 0
-    else {
-      missingToComplete = Math.min(...groups.map(g => Math.max(0, g.total - g.owned - g.inShards)))
-    }
+    if (missingToComplete === Infinity) missingToComplete = 0
+
+    const isNewChampion = championGroup?.owned === 0
 
     let tier
     if (completesNow) tier = TIERS.upgradeNow
     else if (completesWithGroup) tier = TIERS.upgradeGroup
+    else if (isNewChampion) tier = TIERS.newChampion
     else if (startsNew) tier = TIERS.disenchant
     else tier = TIERS.advance
 
     const rarGain = totalRarityWeight > 0
       ? ((RARITY_WEIGHTS[skin.rarity] ?? 0) / totalRarityWeight) * 25 : 0
-    const isNewChampion = championGroup?.owned === 0
     const rosterGain = isNewChampion ? rosterGainBase : 0
     const cGain = completionistGain(base, validDelta, completedDelta)
     const gain = compGainBase + rarGain + rosterGain + cGain
@@ -214,8 +221,9 @@ export const buildShardRecommendations = (state, data) => {
   const tierOrder = {
     [TIERS.upgradeNow]: 0,
     [TIERS.upgradeGroup]: 1,
-    [TIERS.advance]: 2,
-    [TIERS.disenchant]: 3,
+    [TIERS.newChampion]: 2,
+    [TIERS.advance]: 3,
+    [TIERS.disenchant]: 4,
   }
   list.sort((a, b) => tierOrder[a.tier] - tierOrder[b.tier] || b.gain - a.gain)
 
@@ -230,11 +238,13 @@ export const buildShardRecommendations = (state, data) => {
       total: list.length,
       upgradeNow: byTier(TIERS.upgradeNow).length,
       upgradeGroup: byTier(TIERS.upgradeGroup).length,
+      newChampion: byTier(TIERS.newChampion).length,
       advance: byTier(TIERS.advance).length,
       disenchant: byTier(TIERS.disenchant).length,
       potentialGain: {
         upgradeNow: sumGain(byTier(TIERS.upgradeNow)),
         upgradeGroup: sumGain(byTier(TIERS.upgradeGroup)),
+        newChampion: sumGain(byTier(TIERS.newChampion)),
       },
     },
   }
