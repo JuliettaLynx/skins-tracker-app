@@ -16,7 +16,7 @@ function SkinChip({ skin, onMove, onWishlist, isWished }) {
       onDragStart={(event) => event.dataTransfer.setData('text/plain', uuid)}
       title={`${skin.name} (${rarityLabel(skin.rarity)})`}
     >
-      <span className="max-w-[150px] truncate text-text-h">{skin.name}</span>
+      <span className="max-w-[250px] truncate text-text-h">{skin.name}</span>
       {onWishlist && (
         <button
           type="button"

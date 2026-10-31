@@ -4,6 +4,7 @@ import {
   TIERS,
   recommendFor,
   splitRecommItems,
+  setsLabel,
 } from '../recommendations.js'
 import { getSkinPrice } from '../prices.js'
 import RecommGroups from './RecommGroups.jsx'
@@ -112,6 +113,8 @@ export default function GlobalRecommPanel({ skins, base, priceMap }) {
 
   if (!base) return null
 
+  const setsText = split.blocks.length > 0 ? setsLabel(split.blocks.length) : ''
+
   const renderItem = (item) => {
     const meta = TIER_META[item.tier]
     return (
@@ -159,7 +162,7 @@ export default function GlobalRecommPanel({ skins, base, priceMap }) {
         <h2 className="text-sm font-semibold text-text-h m-0">Глобальные рекомендации</h2>
         <span className="text-[11px] text-muted tabular-nums">
           {items.length} шт
-          {split.blocks.length > 0 ? ` · ${split.blocks.length} наборов` : ''}
+          {setsText ? ` · ${setsText}` : ''}
           {' · '}+{totalGain.toFixed(2)} к счёту
           {totals.totalRp > 0 ? ` · ${totals.totalRp} RP` : ''}
         </span>
@@ -170,16 +173,14 @@ export default function GlobalRecommPanel({ skins, base, priceMap }) {
           const meta = TIER_META[tier]
           const t = totals.byTier[tier]
           if (!t || t.count === 0) return null
-          const blocksSuffix =
-            tier === TIERS.upgradeGroup && split.blocks.length > 0
-              ? ` · ${split.blocks.length} наборов`
-              : ''
+          const tierSetsText =
+            tier === TIERS.upgradeGroup && setsText ? setsText : ''
           return (
             <span
               key={tier}
               className="inline-flex items-center gap-1 px-1.5 h-[22px] rounded-full border bg-panel-soft"
               style={{ borderColor: meta.color }}
-              title={`${meta.description}${t.rp > 0 ? ` · купить на ${t.rp} RP` : ''}${blocksSuffix}`}
+              title={`${meta.description}${t.rp > 0 ? ` · купить на ${t.rp} RP` : ''}${tierSetsText ? ` · ${tierSetsText}` : ''}`}
             >
               <span className="w-1.5 h-1.5 rounded-full" style={{ background: meta.color }} />
               <span className="text-muted">{meta.label}</span>
@@ -187,10 +188,8 @@ export default function GlobalRecommPanel({ skins, base, priceMap }) {
               {t.rp > 0 && (
                 <span className="tabular-nums text-muted/90">· {t.rp} RP</span>
               )}
-              {blocksSuffix && (
-                <span className="text-[10px] text-muted/80">
-                  {blocksSuffix.replace(' · ', ' ')}
-                </span>
+              {tierSetsText && (
+                <span className="text-[10px] text-muted/80">{tierSetsText}</span>
               )}
             </span>
           )

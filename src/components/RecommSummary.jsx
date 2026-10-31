@@ -3,6 +3,7 @@ import {
   TIER_META,
   TIERS,
   splitRecommItems,
+  setsLabel,
 } from '../recommendations.js'
 import RecommGroups from './RecommGroups.jsx'
 
@@ -48,7 +49,6 @@ export default function RecommSummary({ recommendations }) {
     let shardCount = 0
     const itemById = new Map(items.map((i) => [i.id, i]))
 
-    // Все тиры, кроме «Набор», считаем по уникальным items
     for (const item of items) {
       if (item.tier === TIERS.upgradeGroup) continue
       byTier[item.tier] += 1
@@ -56,8 +56,6 @@ export default function RecommSummary({ recommendations }) {
       if (item.inShards) shardCount += 1
     }
 
-    // «Набор» — по уникальным скинам среди блоков (пересечения
-    // между наборами не считаем дважды)
     const blockIds = new Set()
     for (const block of split.blocks) {
       for (const m of block.members) blockIds.add(m.id)
@@ -74,6 +72,8 @@ export default function RecommSummary({ recommendations }) {
   }, [items, split.blocks])
 
   if (!items.length) return null
+
+  const setsText = split.blocks.length > 0 ? setsLabel(split.blocks.length) : ''
 
   const renderItem = (item) => {
     const meta = TIER_META[item.tier]
@@ -113,7 +113,7 @@ export default function RecommSummary({ recommendations }) {
         </h2>
         <span className="text-[11px] text-muted tabular-nums">
           {items.length} шт
-          {split.blocks.length > 0 ? ` · ${split.blocks.length} наборов` : ''}
+          {setsText ? ` · ${setsText}` : ''}
           {' · '}+{totals.gain.toFixed(2)} к счёту
           {totals.shardCount > 0 ? ` · ${totals.shardCount} уже в осколках` : ''}
         </span>
@@ -123,24 +123,20 @@ export default function RecommSummary({ recommendations }) {
         {Object.entries(TIER_META).map(([tier, meta]) => {
           const count = totals.byTier[tier]
           if (!count) return null
-          const blocksSuffix =
-            tier === TIERS.upgradeGroup && split.blocks.length > 0
-              ? ` · ${split.blocks.length} наборов`
-              : ''
+          const tierSetsText =
+            tier === TIERS.upgradeGroup && setsText ? setsText : ''
           return (
             <span
               key={tier}
               className="inline-flex items-center gap-1 px-1.5 h-[22px] rounded-full border bg-panel-soft"
               style={{ borderColor: meta.color }}
-              title={`${meta.description}${blocksSuffix}`}
+              title={`${meta.description}${tierSetsText ? ` · ${tierSetsText}` : ''}`}
             >
               <span className="w-1.5 h-1.5 rounded-full" style={{ background: meta.color }} />
               <span className="text-muted">{meta.label}</span>
               <b className="tabular-nums text-text-h">{count}</b>
-              {blocksSuffix && (
-                <span className="text-[10px] text-muted/80">
-                  {blocksSuffix.replace(' · ', ' ')}
-                </span>
+              {tierSetsText && (
+                <span className="text-[10px] text-muted/80">{tierSetsText}</span>
               )}
             </span>
           )

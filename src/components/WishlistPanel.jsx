@@ -4,6 +4,7 @@ import {
   TIERS,
   recommendFor,
   splitRecommItems,
+  setsLabel,
 } from '../recommendations.js'
 import { getSkinPrice } from '../prices.js'
 import RecommGroups from './RecommGroups.jsx'
@@ -48,8 +49,12 @@ export default function WishlistPanel({ wishlist, base, priceMap }) {
     let gain = 0
     let shardCount = 0
     let totalRp = 0
+    const itemById = new Map(items.map((i) => [i.id, i]))
+
     for (const item of items) {
       const t = byTier[item.tier]
+      if (!t) continue
+      if (item.tier === TIERS.upgradeGroup) continue
       t.count += 1
       if (item.gain > 0) gain += item.gain
       if (item.inShards) {
@@ -59,10 +64,31 @@ export default function WishlistPanel({ wishlist, base, priceMap }) {
         totalRp += item.price.RP
       }
     }
+
+    const blockIds = new Set()
+    for (const block of split.blocks) {
+      for (const m of block.members) blockIds.add(m.id)
+    }
+    for (const id of blockIds) {
+      const item = itemById.get(id)
+      if (!item) continue
+      const t = byTier[TIERS.upgradeGroup]
+      t.count += 1
+      if (item.gain > 0) gain += item.gain
+      if (item.inShards) {
+        shardCount += 1
+      } else if (item.price.available && item.price.RP > 0) {
+        t.rp += item.price.RP
+        totalRp += item.price.RP
+      }
+    }
+
     return { count: items.length, gain: round2(gain), byTier, shardCount, totalRp }
-  }, [items])
+  }, [items, split.blocks])
 
   if (!wishlist?.length) return null
+
+  const setsText = split.blocks.length > 0 ? setsLabel(split.blocks.length) : ''
 
   const renderItem = (item) => {
     const meta = TIER_META[item.tier]
@@ -113,7 +139,7 @@ export default function WishlistPanel({ wishlist, base, priceMap }) {
         <h2 className="text-sm font-semibold text-text-h m-0">Рекомендации по вишлисту</h2>
         <span className="text-[11px] text-muted tabular-nums">
           {totals.count} шт
-          {split.blocks.length > 0 ? ` · ${split.blocks.length} наборов` : ''}
+          {setsText ? ` · ${setsText}` : ''}
           {' · '}+{totals.gain.toFixed(2)} к счёту
           {totals.totalRp > 0 ? ` · ${totals.totalRp} RP` : ''}
           {totals.shardCount > 0 ? ` · ${totals.shardCount} уже в осколках` : ''}
@@ -124,16 +150,14 @@ export default function WishlistPanel({ wishlist, base, priceMap }) {
         {Object.entries(TIER_META).map(([tier, meta]) => {
           const t = totals.byTier[tier]
           if (!t || t.count === 0) return null
-          const extra =
-            tier === TIERS.upgradeGroup && split.blocks.length > 0
-              ? ` · ${split.blocks.length} наборов`
-              : ''
+          const tierSetsText =
+            tier === TIERS.upgradeGroup && setsText ? setsText : ''
           return (
             <span
               key={tier}
               className="inline-flex items-center gap-1 px-1.5 h-[22px] rounded-full border bg-panel-soft"
               style={{ borderColor: meta.color }}
-              title={`${meta.description}${t.rp > 0 ? ` · купить на ${t.rp} RP` : ''}${extra}`}
+              title={`${meta.description}${t.rp > 0 ? ` · купить на ${t.rp} RP` : ''}${tierSetsText ? ` · ${tierSetsText}` : ''}`}
             >
               <span className="w-1.5 h-1.5 rounded-full" style={{ background: meta.color }} />
               <span className="text-muted">{meta.label}</span>
@@ -141,8 +165,8 @@ export default function WishlistPanel({ wishlist, base, priceMap }) {
               {t.rp > 0 && (
                 <span className="tabular-nums text-muted/90">· {t.rp} RP</span>
               )}
-              {extra && (
-                <span className="text-[10px] text-muted/80">{extra.replace(' · ', ' ')}</span>
+              {tierSetsText && (
+                <span className="text-[10px] text-muted/80">{tierSetsText}</span>
               )}
             </span>
           )
