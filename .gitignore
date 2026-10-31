@@ -23,4 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 
-*.py
+.agents
+.claude
+
+tools/
