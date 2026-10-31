@@ -53,7 +53,6 @@ const countIn = (ids, set) => {
   return n
 }
 
-// Базовое состояние считается один раз на (skins, collection)
 export const buildBaseLine = (data) => {
   const { skins, champions } = data
   const collectionSet = new Set(data.state.collection)
@@ -100,8 +99,6 @@ const completionistGain = (base, validDelta, completedDelta) => {
   return after - before
 }
 
-// Расчёт для произвольного набора id (shards, wishlist, видимые строки).
-// extraSet позволяет учесть предметы, которые ещё не куплены, но которые мы планируем купить (например, вишлист).
 export const recommendFor = (itemIds, base, ownedSet = base.collectionSet, extraSet = new Set()) => {
   const result = new Map()
   const shardsSet = base.shardsSet
@@ -109,7 +106,6 @@ export const recommendFor = (itemIds, base, ownedSet = base.collectionSet, extra
   const totalRarityWeight = base.totalRarityWeight
   const totalChampions = base.totalChampions
 
-  // Множество всех доступных предметов (осколки + планируемые к покупке)
   const potentialSet = extraSet.size > 0 ? new Set([...shardsSet, ...extraSet]) : shardsSet
 
   const compGainBase = totalSkins > 0 ? 30 / totalSkins : 0
@@ -150,20 +146,14 @@ export const recommendFor = (itemIds, base, ownedSet = base.collectionSet, extra
     let missingToComplete = Infinity
 
     for (const g of groups) {
-      // Сколько нужно купить, чтобы закрыть группу (только за счет осколков)
       const missingWithShards = Math.max(0, g.total - g.owned)
-      
-      // Сколько нужно купить, чтобы закрыть группу (с учетом вишлиста)
       const missingWithPotential = Math.max(0, g.total - g.owned)
-
-      // Берем лучший (наименьший) вариант нехватки для этой группы
       const currentMissing = Math.min(missingWithShards, missingWithPotential)
       if (currentMissing < missingToComplete) {
         missingToComplete = currentMissing
       }
 
       if (g.owned + 1 === g.total) {
-        // Покупка этого скина закрывает группу прямо сейчас
         completesNow = true
         completedDelta += 1
         if (missingToComplete > 1) missingToComplete = 1
@@ -212,7 +202,6 @@ export const recommendFor = (itemIds, base, ownedSet = base.collectionSet, extra
   return result
 }
 
-// Удобный враппер для осколков — с сортировкой и summary.
 export const buildShardRecommendations = (state, data) => {
   const base = buildBaseLine({ ...data, state })
   const recs = recommendFor(state.shards, base)
@@ -233,7 +222,7 @@ export const buildShardRecommendations = (state, data) => {
   return {
     list,
     recommendationsById: recs,
-    base, // переиспользуется для wishlist и lazy-расчёта
+    base,
     summary: {
       total: list.length,
       upgradeNow: byTier(TIERS.upgradeNow).length,
@@ -249,3 +238,69 @@ export const buildShardRecommendations = (state, data) => {
     },
   }
 }
+
+// ---------------------------------------------------------------
+// Группировка «наборов».
+// Возвращает { blocks, upgradeNow, others }:
+//   blocks     — блок на КАЖДУЮ завершающую группу (skinline / champion),
+//                где >= 2 участника. Один скин может быть в нескольких
+//                блоках, если он закрывает несколько групп одновременно.
+//   upgradeNow — одиночные items тира upgradeNow, не попавшие ни в один блок
+//   others     — все остальные items, не попавшие ни в один блок
+//
+// Дубли в blocks НЕ учитываются в общих суммах: те считаются по уникальным items
+// ---------------------------------------------------------------
+export const splitRecommItems = (items) => {
+  const groupMap = new Map()
+
+  for (const item of items) {
+    if (item.tier === TIERS.disenchant) continue
+
+    const completing = item.groups.filter(
+      (g) => g.owned + g.inPotential === g.total && g.inPotential >= 2
+    )
+
+    for (const g of completing) {
+      const key = `${g.type}:${g.id}`
+      if (!groupMap.has(key)) {
+        groupMap.set(key, { key, type: g.type, name: g.name, members: [] })
+      }
+      groupMap.get(key).members.push(item)
+    }
+  }
+
+  const blocks = []
+  for (const block of groupMap.values()) {
+    if (block.members.length >= 2) {
+      block.members.sort((a, b) => b.gain - a.gain)
+      blocks.push(block)
+    }
+  }
+
+  const inBlocks = new Set()
+  for (const block of blocks) {
+    for (const m of block.members) inBlocks.add(m.id)
+  }
+
+  blocks.sort((a, b) => {
+    const sumA = a.members.reduce((s, i) => s + i.gain, 0)
+    const sumB = b.members.reduce((s, i) => s + i.gain, 0)
+    return sumB - sumA
+  })
+
+  const upgradeNow = items.filter(
+    (i) => i.tier === TIERS.upgradeNow && !inBlocks.has(i.id)
+  )
+  const others = items.filter(
+    (i) => !inBlocks.has(i.id) && i.tier !== TIERS.upgradeNow
+  )
+
+  return { blocks, upgradeNow, others }
+}
+
+// Сумма RP по items — считаем только те, что нужно докупать за RP
+export const sumRecommRp = (items) =>
+  items.reduce(
+    (s, i) => s + (!i.inShards && i.price?.available && i.price.RP > 0 ? i.price.RP : 0),
+    0
+  )
