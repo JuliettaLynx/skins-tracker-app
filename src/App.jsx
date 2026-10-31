@@ -258,24 +258,27 @@ export default function App() {
           shards={shards}
           chromas={chromas}
         />
-        {view === 'skins' && recommendations.summary.total > 0 && (
-          <RecommSummary recommendations={recommendations} />
-        )}
-
-        {view === 'skins' && wishlist.length > 0 && (
-          <WishlistPanel
-            wishlist={wishlist}
-            base={recommendations.base}
-            priceMap={priceMap}
-          />
-        )}
-
-        {view === 'skins' && !loading && skins.length > 0 && (
-          <GlobalRecommPanel
-            skins={skins}
-            base={recommendations.base}
-            priceMap={priceMap}
-          />
+        
+        {view === 'skins' && (
+          <div className="grid grid-cols-1 min-[1100px]:grid-cols-3 gap-4 items-start">
+            {recommendations.summary.total > 0 && (
+              <RecommSummary recommendations={recommendations} />
+            )}
+            {wishlist.length > 0 && (
+              <WishlistPanel
+                wishlist={wishlist}
+                base={recommendations.base}
+                priceMap={priceMap}
+              />
+            )}
+            {!loading && skins.length > 0 && (
+              <GlobalRecommPanel
+                skins={skins}
+                base={recommendations.base}
+                priceMap={priceMap}
+              />
+            )}
+          </div>
         )}
 
         <div

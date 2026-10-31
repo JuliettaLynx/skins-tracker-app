@@ -99,7 +99,7 @@ export default function ParameterCards({
               </div>
 
               <div className="text-[10px] text-muted tabular-nums leading-tight">
-                {delta > 0.005 ? `+${fmt2(delta)} с осколками` : 'без изменений'}
+                {delta > 0 ? `+${fmt2(delta)} с осколками` : `${fmt2(delta)} с осколками`}
               </div>
             </div>
           )

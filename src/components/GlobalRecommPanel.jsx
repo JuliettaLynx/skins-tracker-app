@@ -90,7 +90,7 @@ export default function GlobalRecommPanel({ skins, base, priceMap }) {
       
       <CollapsibleChips
         items={items}
-        limit={15}
+        limit={12}
         renderItem={(item) => {
           const meta = TIER_META[item.tier]
           return (
