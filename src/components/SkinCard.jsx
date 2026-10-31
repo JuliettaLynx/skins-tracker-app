@@ -1,7 +1,7 @@
 import { memo } from 'react'
-import { rarityColor, rarityLabel } from '../rarities.js'
-import { skinImageSrc, skinKey } from '../skins.js'
-import { TIER_META } from '../recommendations.js'
+import { rarityColor, rarityLabel } from '../lib/rarities.js'
+import { skinImageSrc, skinKey } from '../lib/skins.js'
+import { TIER_META } from '../lib/recommendations.js'
 
 const btnCls =
   'grid place-items-center w-[22px] h-[22px] p-0 border border-[#2c3546] rounded-md bg-[#1a2130] text-text-h text-xs leading-none cursor-pointer hover:border-accent hover:bg-[#232c3d]'

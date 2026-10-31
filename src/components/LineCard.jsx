@@ -1,4 +1,4 @@
-import { LIST_COLORS } from '../rarities.js'
+import { LIST_COLORS } from '../lib/rarities.js'
 
 export default function LineCard({ line }) {
   const owned = line.collection + line.shards

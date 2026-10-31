@@ -1,6 +1,6 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
-import { buildShardRecommendations } from './recommendations.js'
-import { LIST_COLORS } from './rarities.js'
+import { buildShardRecommendations } from './lib/recommendations.js'
+import { LIST_COLORS } from './lib/rarities.js'
 import {
   CHROMA_FILTER,
   LIST,
@@ -9,9 +9,9 @@ import {
   buildRows,
   filterChromaRows,
   normalizeData,
-} from './skins.js'
-import { mergeLists, parseInventory } from './inventory.js'
-import { parseStorePrices } from './prices.js'
+} from './lib/skins.js'
+import { mergeLists, parseInventory } from './lib/inventory.js'
+import { parseStorePrices } from './lib/prices.js'
 import useLocalStorage from './hooks/useLocalStorage.js'
 import useWishlist from './hooks/useWishlist.js'
 

@@ -1,6 +1,6 @@
 import { memo, useEffect, useMemo, useState } from 'react'
-import { CHROMA_FILTER_LABELS } from '../skins.js'
-import { rarityColor } from '../rarities.js'
+import { CHROMA_FILTER_LABELS } from '../lib/skins.js'
+import { rarityColor } from '../lib/rarities.js'
 import ChromaCard from './ChromaCard.jsx'
 import ChromaChip from './ChromaChip.jsx'
 

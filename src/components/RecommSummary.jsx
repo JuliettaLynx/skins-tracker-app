@@ -4,7 +4,7 @@ import {
   TIERS,
   splitRecommItems,
   setsLabel,
-} from '../recommendations.js'
+} from '../lib/recommendations.js'
 import RecommGroups from './RecommGroups.jsx'
 
 const TIER_ORDER = {

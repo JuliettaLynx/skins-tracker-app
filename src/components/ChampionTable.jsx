@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { LIST, LIST_TITLES, skinKey } from '../skins.js'
+import { LIST, LIST_TITLES, skinKey } from '../lib/skins.js'
 import SkinCard from './SkinCard.jsx'
 import SkinChip from './SkinChip.jsx'
 import SkinsColumn from './SkinsColumn.jsx'

@@ -1,4 +1,4 @@
-import { sumRecommRp } from '../recommendations.js'
+import { sumRecommRp } from '../lib/recommendations.js'
 import CollapsibleChips from './CollapsibleChips.jsx'
 
 function SetBlock({ block, renderItem }) {

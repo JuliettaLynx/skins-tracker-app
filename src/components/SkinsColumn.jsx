@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { LIST } from '../skins.js'
+import { LIST } from '../lib/skins.js'
 
 const hoverByList = {
   [LIST.collection]: 'border-[#c89b3c] bg-[rgba(200,155,60,0.1)]',

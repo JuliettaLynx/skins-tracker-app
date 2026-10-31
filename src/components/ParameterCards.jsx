@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
-import { PARAMETER_META, RANK_COLORS, computeParameters } from '../parameters.js'
-import { LIST_COLORS } from '../rarities.js'
+import { PARAMETER_META, RANK_COLORS, computeParameters } from '../lib/parameters.js'
+import { LIST_COLORS } from '../lib/rarities.js'
 
 const fmt2 = (n) => n.toFixed(2)
 
