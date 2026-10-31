@@ -22,6 +22,14 @@ export default function ImportBar({ onImport, disabled }) {
 
   return (
     <div className="flex items-center gap-2 flex-none">
+      <a
+        href="/fetch-inventory.zip"
+        download
+        className="inline-flex items-center justify-center px-3 py-[7px] rounded-lg border border-[#3a3a4a] bg-[#1a1a26] text-[#a09ac4] text-[13px] leading-none cursor-pointer whitespace-nowrap transition-colors hover:bg-[#25253a] hover:border-[#7c6fb3]"
+        title="Скачать скрипт для получения inventory.json из клиента LoL (Windows)"
+      >
+        ↓ Скрипт
+      </a>
       <button
         type="button"
         disabled={disabled}
