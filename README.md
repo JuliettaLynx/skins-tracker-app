@@ -1,16 +1,54 @@
-# React + Vite
+# Трекер скинов League of Legends
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+SPA для трекинга коллекции скинов LoL: отслеживание коллекции / осколков / хром, рекомендации по апгрейдам и скоринг «уровня игрока».
 
-Currently, two official plugins are available:
+## Что умеет
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Скины** — разбивка по чемпионам, статусы «в коллекции / в осколках», wishlist
+- **Хромы** — индекс по скинам, фильтрация по владению скинами/хромами
+- **Рекомендации** — группы апгрейда (закрывает линейку / набор / новый чемпион / продолжение / отложить)
+- **Параметры** — скоринг по 5 метрикам (полнота, редкость, охват чемпионов, коллекционер, покрытие хром) с рангом от Iron до Master
+- **Импорт** — загрузка JSON-экспорта инвентаря Riot Games (скины, осколки, хромы, магазин)
 
-## React Compiler
+## Запуск локально
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+npm install
+npm run dev
+```
 
-## Expanding the ESLint configuration
+Откроется `http://localhost:5173`.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Структура
+
+```
+src/
+├─ App.jsx          — роутинг (skins / chromas), стейт, оркестрация
+├─ main.jsx         — точка входа
+├─ index.css        — Tailwind-тема (токены цветов)
+├─ components/      — UI-компоненты (16 файлов)
+├─ hooks/           — useLocalStorage, useWishlist
+└─ lib/             — чистая доменная логика (без React)
+   ├─ skins.js      — нормализация данных, buildRows, buildLines, хром-индекс
+   ├─ recommendations.js — группировка апгрейдов, скоринг рекомендаций
+   ├─ parameters.js — вычисление метрик и ранга
+   ├─ inventory.js  — парсинг JSON-экспорта инвентаря Riot
+   ├─ prices.js     — цены RP/OE, парсинг магазина
+   └─ rarities.js   — палитра редкости, сортировка, цвета списков
+```
+
+## Данные
+
+`public/data.json` (~10 МБ) — каталог скинов, хром и чемпионов в формате Riot API. Загружается один раз при старте.
+
+Для обновления: замени `data.json` в `public/` на свежую версию.
+
+## Технологии
+
+- **React 19** + **Vite 8** + **Tailwind CSS 4**
+- Hash-роутинг через `#hash`
+- Данные хранятся в `localStorage` (коллекция, осколки, хромы, wishlist)
+
+## Известные ограничения
+
+- `data.json` (10 МБ) — единственный тяжёлый ресурс, загружается при каждом старте
