@@ -74,7 +74,7 @@ export default function App() {
 
   useEffect(() => {
     let alive = true
-    fetch('/data.json')
+    fetch(`${import.meta.env.BASE_URL}data.json`)
       .then((response) => {
         if (!response.ok) throw new Error(`data.json: HTTP ${response.status}`)
         return response.json()
