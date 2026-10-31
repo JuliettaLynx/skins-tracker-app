@@ -8,7 +8,7 @@ import RecommSummary from './components/RecommSummary.jsx'
 import { useWishlist } from './hooks/useWishlist.js'
 import WishlistPanel from './components/WishlistPanel.jsx'
 import GlobalRecommPanel from './components/GlobalRecommPanel.jsx'
-import { buildBaseLine, buildShardRecommendations, recommendFor } from './recommendations.js'
+import { buildShardRecommendations } from './recommendations.js'
 import { LIST_COLORS } from './rarities.js'
 import {
   CHROMA_FILTER,
@@ -36,6 +36,11 @@ const readView = () => {
   if (typeof window === 'undefined') return 'skins'
   return /^#\/?chromas/.test(window.location.hash) ? 'chromas' : 'skins'
 }
+
+const GRID_111 = 'minmax(0,1fr) minmax(0,1fr) minmax(0,2fr)'
+const GRID_12 = 'minmax(0,1fr) minmax(0,2fr)'
+const GRID_11 = 'minmax(0,1fr) minmax(0,1fr)'
+const GRID_1 = 'minmax(0,1fr)'
 
 export default function App() {
   const [skins, setSkins] = useState([])
@@ -193,6 +198,17 @@ export default function App() {
     return { owned, total: chromaCatalogue.length }
   }, [chromaCatalogue, ownedChromaSet])
 
+  const showSummary = recommendations.summary.total > 0
+  const showWishlist = wishlist.length > 0
+  const showGlobal = !loading && skins.length > 0
+
+  const panelGrid = (() => {
+    if (showSummary && showWishlist && showGlobal) return GRID_111
+    if (showGlobal && (showSummary || showWishlist)) return GRID_12
+    if (showSummary && showWishlist) return GRID_11
+    return GRID_1
+  })()
+
   return (
     <div className="min-h-svh">
       <header className="sticky top-0 z-10 flex flex-wrap items-center gap-4 px-4 py-2.5 bg-[rgba(10,13,19,0.92)] backdrop-blur-[6px] border-b border-border">
@@ -259,19 +275,20 @@ export default function App() {
           chromas={chromas}
         />
         
-        {view === 'skins' && (
-          <div className="grid grid-cols-1 min-[1100px]:grid-cols-3 gap-4 items-start">
-            {recommendations.summary.total > 0 && (
-              <RecommSummary recommendations={recommendations} />
-            )}
-            {wishlist.length > 0 && (
+        {view === 'skins' && (showSummary || showWishlist || showGlobal) && (
+          <div
+            className="grid grid-cols-1 gap-4 items-start min-[1100px]:[grid-template-columns:var(--panel-grid)]"
+            style={{ '--panel-grid': panelGrid }}
+          >
+            {showSummary && <RecommSummary recommendations={recommendations} />}
+            {showWishlist && (
               <WishlistPanel
                 wishlist={wishlist}
                 base={recommendations.base}
                 priceMap={priceMap}
               />
             )}
-            {!loading && skins.length > 0 && (
+            {showGlobal && (
               <GlobalRecommPanel
                 skins={skins}
                 base={recommendations.base}

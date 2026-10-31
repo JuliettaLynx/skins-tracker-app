@@ -115,7 +115,7 @@ export const computeParameters = (owned, data) => {
       ? (ownedChromasForOwnedSkins.length / chromasForOwnedSkins.length) * 10
       : 0
 
-  const score = Math.round(completeness + rarity + rosterBreadth + completionist + chromaCoverage)
+  const score = completeness + rarity + rosterBreadth + completionist + chromaCoverage
 
   return {
     score,
