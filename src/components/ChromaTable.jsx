@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useState } from 'react'
+import { memo, useMemo, useState } from 'react'
 import { CHROMA_FILTER_LABELS } from '../lib/skins.js'
 import { rarityColor } from '../lib/rarities.js'
 import ChromaCard from './ChromaCard.jsx'
@@ -146,9 +146,14 @@ export default function ChromaTable({ rows, ownedSet, onToggle, filter, onFilter
     })
   }
 
-  useEffect(() => {
+  // Сброс пагинации при смене строк или сортировки. Держим «прошлое» значение в
+  // стейте и правим его прямо во время рендера: эффект сделал бы второй проход
+  // и попал под react-hooks/set-state-in-effect.
+  const [pagedBy, setPagedBy] = useState({ rows, sort })
+  if (pagedBy.rows !== rows || pagedBy.sort !== sort) {
+    setPagedBy({ rows, sort })
     setVisible(PAGE)
-  }, [rows, sort])
+  }
 
   const sortedRows = useMemo(() => {
     const compare = SORT_COMPARATORS[sort.key]

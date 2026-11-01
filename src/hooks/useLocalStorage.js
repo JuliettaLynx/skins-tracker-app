@@ -20,6 +20,8 @@ export default function useLocalStorage(key, initialValue) {
       try {
         window.localStorage.setItem(key, JSON.stringify(value))
       } catch {
+        // localStorage может быть переполнен или недоступен (приватный режим) —
+        // состояние просто остаётся в памяти до следующей записи
       }
     }, 300)
     return () => clearTimeout(t)
